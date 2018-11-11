@@ -55,7 +55,7 @@ class AuditLog extends TinyGrid
         $columns = array(
             'id' => array(
                 'header' => array(
-                	'attributes' => array('style' => 'width:100px'),
+                    'attributes' => array('style' => 'width:100px'),
                     'label' => '#',
                     'sort' => true,
                     'sort_column' => array('id'),
@@ -73,7 +73,7 @@ class AuditLog extends TinyGrid
 
             'created_on' => array(
                 'header' => array(
-                	'attributes' => array('style' => 'width:150px'),
+                    'attributes' => array('style' => 'width:150px'),
                     'label' => 'Date',
                     'sort' => true,
                     #'sort_column' => 'tipo_producto',
@@ -83,8 +83,8 @@ class AuditLog extends TinyGrid
                 ),
                 'cell' => array(
                     'type' => 'date',
-            		'date_format_to' => 'F HH:mm:ss',
-		            'empty_date' => '-'
+                    'date_format_to' => 'F HH:mm:ss',
+                    'empty_date' => '-'
                 )
             ),            
             'title' => array(
@@ -101,19 +101,22 @@ class AuditLog extends TinyGrid
 
             'url' => array(
                 'header' => array(
+                    'attributes' => array('style' => 'width:160px'),
                     'label' => 'Url',
                     'sort' => 1,
 
                     'filter' => 1,
                 ),
                 'cell' => array(
-                    
+                    'callback' => function($value, $row, $field, $config) {
+                        return wordwrap($value, 20,"\n", true);
+                    },
                 )
             ),
 
             'ip_address' => array(
                 'header' => array(
-                	'attributes' => array('style' => 'width:150px'),
+                    'attributes' => array('style' => 'width:150px'),
                     'label' => 'IP',
                     'sort' => 1,
 
@@ -127,7 +130,7 @@ class AuditLog extends TinyGrid
 
             'user_id' => array(
                 'header' => array(
-                	'attributes' => array('style' => 'width:100px'),
+                    'attributes' => array('style' => 'width:100px'),
                     'label' => 'User',
                     'sort' => 1,
 
@@ -155,5 +158,3 @@ class AuditLog extends TinyGrid
         $this->setColumns($columns);
     }
 }
-
-
