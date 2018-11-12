@@ -1342,6 +1342,11 @@ class TinyGrid implements EventManagerAwareInterface, ContainerAwareInterface
 
                     if(isset($header['filter_values']) && is_array($header['filter_values']))
                     {
+                        $forSearch[$name]['filter_values'] = $header['filter_values'];
+                    }
+
+                    if(isset($header['filter_values']) && is_array($header['filter_values']))
+                    {
                         $forSearch[$name]['filter_type'] = '=';
                     }
                     elseif(isset($header['filter_type']))
