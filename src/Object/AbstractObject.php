@@ -186,11 +186,11 @@ abstract class AbstractObject implements ContainerAwareInterface, LazyLoadInterf
         }
         elseif(is_object($data))
         {
-            if(ethod_exists($data, 'toArray'))
+            if(method_exists($data, 'toArray'))
             {
                 $data = $data->toArray();
             }
-            elseif(ethod_exists($data, 'getArrayCopy'))
+            elseif(method_exists($data, 'getArrayCopy'))
             {
                 $data = $data->getArrayCopy();
             }
