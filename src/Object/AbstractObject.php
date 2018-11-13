@@ -180,10 +180,20 @@ abstract class AbstractObject implements ContainerAwareInterface, LazyLoadInterf
         {
             $data = $data->toArray();
         }
-
-        if($data instanceof AbstractObject)
+        elseif($data instanceof AbstractObject)
         {
             $data = $data->toArray();
+        }
+        elseif(is_object($data))
+        {
+            if(ethod_exists($data, 'toArray'))
+            {
+                $data = $data->toArray();
+            }
+            elseif(ethod_exists($data, 'getArrayCopy'))
+            {
+                $data = $data->getArrayCopy();
+            }
         }
         
         if (!is_array($data) && !$data instanceof Traversable)
