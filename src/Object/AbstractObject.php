@@ -487,7 +487,7 @@ abstract class AbstractObject implements ContainerAwareInterface, LazyLoadInterf
      *
      * @return array
      */
-    function getProperties()
+    function getProperties($prefix = null)
     {
         if(!$this->_properties)
         {
@@ -502,7 +502,20 @@ abstract class AbstractObject implements ContainerAwareInterface, LazyLoadInterf
             }
         }
 
-        return $this->_properties;
+        if(empty($prefix))
+        {
+            return $this->_properties;
+        }
+        else
+        {
+            $ret = array();
+            foreach($this->_properties as $val)
+            {
+                $ret[] = "{$prefix}{$val}";
+            }
+
+            return $ret;
+        }
     }
 
     
