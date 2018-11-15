@@ -98,7 +98,7 @@ abstract class AbstractEntity extends AbstractObject implements LazyLoadInterfac
      */
     function getEntityColumns()
     {
-        return $this->properties;
+        return $this->getProperties();
     }
 
 
