@@ -563,6 +563,19 @@ class FileSaver
         }
         else
         {
+            $fullPath = $this->getFullPathToUpload();
+            $relPath = $this->getRelativePath();
+
+            $arr = array(
+                'file_name' => $newName,
+                'full_path' => "{$fullPath}/{$newName}",
+                'relative_path' => "{$relPath}/{$newName}",
+            );
+
+            $fileName = $postedFile->getName();
+            $this->getCommunicator()->setSuccess("File '$fileName' successful uploaded.", $arr);
+
+            #
             $f = $newName;
             $newUmask = 0777;
             $oldUmask = umask($newUmask);

@@ -1,4 +1,3 @@
-
 <?php
 /**
  *
@@ -59,8 +58,7 @@ class PostedFile
     {
         if(is_array($name))
         {
-            $tmp = $name;
-            
+            $tmp = current($name);
             $name = isset($tmp['name']) ? $tmp['name'] : '';
             if($name)
             {
