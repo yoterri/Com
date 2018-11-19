@@ -576,7 +576,7 @@ class FileSaver
             $this->getCommunicator()->setSuccess("File '$fileName' successful uploaded.", $arr);
 
             #
-            $f = $newName;
+            $f = "{$relPath}/{$newName}";
             $newUmask = 0777;
             $oldUmask = umask($newUmask);
             
