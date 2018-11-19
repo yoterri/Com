@@ -54,7 +54,7 @@ class PostedFile
      * @param string $tmpName - $_FILES[$tmpName]['tmp_name']
      * @param int $error - $_FILES[$error]['error']
      */
-    function __construct($name, $type = null, $size = null, $tmpName = null, $error = null)
+    function __construct($name, $type = null, $size = null, $tmpName = null, $error = 4)
     {
         if(is_array($name))
         {
