@@ -327,7 +327,7 @@ class FileSaver
     function getFullPathToUpload()
     {
         $path = $this->getUploadPath();
-        if(! file_exists($path) || ! is_writable($path))
+        if(! file_exists($path))
             return '';
         
         $relPath = $this->getRelativePath();
