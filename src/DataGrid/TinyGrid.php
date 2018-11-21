@@ -2444,7 +2444,12 @@ class TinyGrid implements EventManagerAwareInterface, ContainerAwareInterface
 
     protected function _applyFilterSelect($source, $config)
     {
-        $where = new Where();
+        $where = $source->getRawState('where');
+        if(!$where)
+        {
+            $where = new Where();
+        }
+        
         foreach($config as $item)
         {
             $search = (string)$item['search'];
