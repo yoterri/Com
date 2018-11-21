@@ -1071,7 +1071,7 @@ class TinyGrid implements EventManagerAwareInterface, ContainerAwareInterface
             $this->build();
         }
 
-        $paginator = $this->rederPaginator();
+        $paginator = $this->renderPaginator();
         $position = $this->getPaginatorPosition();
 
         $html = '';
@@ -1882,7 +1882,7 @@ class TinyGrid implements EventManagerAwareInterface, ContainerAwareInterface
     /**
      * @return string
      */
-    function rederPaginator()
+    function renderPaginator()
     {
         $html = '';
         if($this->getShowPaginator())
