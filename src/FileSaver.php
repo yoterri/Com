@@ -93,13 +93,13 @@ class FileSaver
      *
      * @var string
      */
-    const RESPONSE_EXTENSION_NOT_ALLOWED = 'File extension not allowed.';
+    const RESPONSE_EXTENSION_NOT_ALLOWED = 'File extension not allowed. Expected: ###.';
     
     /**
      *
      * @var string
      */
-    const RESPONSE_MIME_TYPE_NOT_ALLOWED = 'File type not allwed.';
+    const RESPONSE_MIME_TYPE_NOT_ALLOWED = 'File type not allwed. Expected: ###';
     
     /**
      *
@@ -183,9 +183,9 @@ class FileSaver
 
     /**
      *
-     * @param \Com\PostedFile $postedFile
+     * @param \Com\PostedFile|\Com\StreamedFile $postedFile
      */
-    function __construct(\Com\PostedFile $postedFile = null)
+    function __construct($postedFile = null)
     {
         if(! is_null($postedFile))
         {
@@ -234,12 +234,20 @@ class FileSaver
 
     /**
      *
-     * @param \Com\PostedFile $postedFile
+     * @param \Com\PostedFile|\Com\StreamedFile $postedFile
      * @return \Com\FileSaver
      */
-    function setPostedFile(\Com\PostedFile $postedFile)
+    function setPostedFile($postedFile)
     {
-        $this->_postedFile = $postedFile;
+        if($postedFile instanceof \Com\PostedFile)
+        {
+            $this->_postedFile = $postedFile;
+        }
+        elseif($postedFile instanceof \Com\StreamedFile)
+        {
+            $this->_postedFile = $postedFile;
+        }
+        
         return $this;
     }
 
@@ -554,9 +562,21 @@ class FileSaver
         }
         
         $filename = $this->getFullPathToUpload() . '/' . $newName;
-        $f = @move_uploaded_file($postedFile->getTmpName(), $filename);
+
+        if($postedFile instanceof \Com\PostedFile)
+        {
+            $f = @move_uploaded_file($postedFile->getTmpName(), $filename);
+        }
+        elseif($postedFile instanceof \Com\StreamedFile)
+        {
+            $f = rename($postedFile->getTmpName(), $filename);
+        }
+        else
+        {
+            $f = false;
+        }
         
-        if(! $f)
+        if(!$f)
         {
             $this->_setCommunicatorMessage(self::RESPONSE_CANNOT_MOVE_UPLOADED_FILE, 'error');
             return false;
@@ -597,32 +617,38 @@ class FileSaver
         $postedFile = $this->getPostedFile();
         
         // las verificaciones por defecto de php
-        $error = $postedFile->getError();
-        if($error >= 1 && $error <= 7)
+        if($postedFile instanceof \Com\PostedFile)
         {
-            $var = "RESPONSE_{$error}";
-            $message = $this->$var;
-            
-            if(1 == $error)
+            $error = $postedFile->getError();
+            if($error >= 1 && $error <= 7)
             {
-                $upload_max_filesize = ini_get('upload_max_filesize');
-                $bytes = \Com\Util\MaxUploadFileSize::normalice($upload_max_filesize);
+                $var = "RESPONSE_{$error}";
+                $message = $this->$var;
                 
-                $message .= ' ' . $this->_fileSize($bytes, null, 1);
+                if(1 == $error)
+                {
+                    $upload_max_filesize = ini_get('upload_max_filesize');
+                    $bytes = \Com\Util\MaxUploadFileSize::normalice($upload_max_filesize);
+                    
+                    $message .= ' ' . $this->_fileSize($bytes, null, 1);
+                }
+                
+                $this->_setCommunicatorMessage($message, 'error');
+                return false;
             }
-            
-            $this->_setCommunicatorMessage($message, 'error');
-            return false;
         }
+        
         
         // verificar la extension del archivo
         $allowed = $this->getAllowedExtensions();
         
         if(count($allowed))
         {
-            if(! $postedFile->hasExtension($allowed))
+            if(!$postedFile->hasExtension($allowed))
             {
-                $this->_setCommunicatorMessage(self::RESPONSE_EXTENSION_NOT_ALLOWED, 'error');
+                $str = sprintf('(%s)', implode(', ', $allowed));
+                $msg = str_replace('###', $str, self::RESPONSE_EXTENSION_NOT_ALLOWED);
+                $this->_setCommunicatorMessage($msg, 'error');
                 return false;
             }
         }
@@ -632,11 +658,16 @@ class FileSaver
         {
             $pattern = '';
             foreach($allowed as $value)
-                $pattern .= '(\.' . $value . ')$|';
-            
-            if(! preg_match("#$pattern#i", $postedFile->getType()))
             {
-                $this->_setCommunicatorMessage(self::RESPONSE_MIME_TYPE_NOT_ALLOWED, 'error');
+                $pattern .= '(\.' . $value . ')$|';
+            }
+            
+            if(!preg_match("#$pattern#i", $postedFile->getType()))
+            {
+                $str = sprintf('(%s)', implode(', ', $allowed));
+                $msg = str_replace('###', $str, self::RESPONSE_MIME_TYPE_NOT_ALLOWED);
+
+                $this->_setCommunicatorMessage($msg, 'error');
                 return false;
             }
         }
@@ -657,10 +688,13 @@ class FileSaver
             return false;
         }
         
-        if(! is_uploaded_file($postedFile->getTmpName()))
+        if($postedFile instanceof \Com\PostedFile)
         {
-            $this->_setCommunicatorMessage(self::UNEXPECTED_ERROR, 'error');
-            return false;
+            if(! is_uploaded_file($postedFile->getTmpName()))
+            {
+                $this->_setCommunicatorMessage(self::UNEXPECTED_ERROR, 'error');
+                return false;
+            }
         }
         
         return true;
