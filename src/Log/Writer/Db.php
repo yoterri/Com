@@ -65,7 +65,7 @@ class Db extends AbstractWriter
     {
         if(!$this->dbTable)
         {
-            throw new Exception\RuntimeException('Db Table is not set');
+            throw new \Exception('Db Table is not set');
         }
 
         if($this->hasFormatter())

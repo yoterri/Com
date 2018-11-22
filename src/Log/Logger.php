@@ -51,7 +51,13 @@ class Logger extends zLogger
         {
             if($message instanceof \exception)
             {
-                $extra['exception'] = $message->getTrace();
+                $extra['exception_message'] = $message->getMessage();
+                $extra['exception_line'] = $message->getLine();
+                $extra['exception_file'] = $message->getFile();
+                $extra['exception_code'] = $message->getCode();
+                $extra['exception_message'] = $message->getMessage();
+
+                $extra['exception'] = $message->getTraceAsString();
                 $message = "Exception: {$message->getMessage()}";
             }
             else
