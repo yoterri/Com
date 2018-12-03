@@ -1726,12 +1726,20 @@ class TinyGrid implements EventManagerAwareInterface, ContainerAwareInterface
 
             break;
             
-            case 'money': 
+            case 'money':
+
+                $value = (double)$value;
+                if(!$value)
+                {
+                    $value = '0.00';
+                }
 
                 $field_money_sign = isset($config['sign']) ? $config['sign'] : '$';
                 $field_decimal_places = isset($config['decimal_places']) ? $config['decimal_places'] : 2;
                 $field_dec_separator = isset($config['decimal_separator']) ? $config['decimal_separator'] : '.';
                 $field_thousands_separator = isset($config['thousands_separator']) ? $config['thousands_separator'] : ',';
+
+                
 
                 $value = $field_money_sign . number_format($value, $field_decimal_places, $field_dec_separator, $field_thousands_separator);
 
@@ -1744,6 +1752,8 @@ class TinyGrid implements EventManagerAwareInterface, ContainerAwareInterface
             break;
 
             case 'amount':
+
+                $value = (double)$value;
 
                 $field_dec_separator = isset($config['decimal_separator']) ? $config['decimal_separator'] : '.';
                 $field_thousands_separator = isset($config['thousands_separator']) ? $config['thousands_separator'] : ',';

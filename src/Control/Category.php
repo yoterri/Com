@@ -7,46 +7,47 @@ use Zend\Db\Sql\Literal;
 use Zend\Db\Sql\Select;
 use Com\ArrayUtils;
 use Com\Entity\AbstractEntity;
+use Zend\Stdlib\Parameters;
 
 class Category extends AbstractControl implements LazyLoadInterface
 {
 
-	/**
-	 * @var AbstractDb
-	 */
-	protected $dbCategory;
+    /**
+     * @var AbstractDb
+     */
+    protected $dbCategory;
 
-	/**
-	 * @var AbstractDb
-	 */
-	protected $dbGroup;
+    /**
+     * @var AbstractDb
+     */
+    protected $dbGroup;
 
     /**
      * @var AbstractDb
      */
     protected $dbClosure;
 
-	/**
-	 * @var int
-	 */
-	protected $groupId = 0;
+    /**
+     * @var int
+     */
+    protected $groupId = 0;
 
 
-	/**
-	 * @var string
-	 */
-	protected $dbCategoryPrimary = 'id';
+    /**
+     * @var string
+     */
+    protected $dbCategoryPrimary = 'id';
 
-	/**
-	 * @var string
-	 */
+    /**
+     * @var string
+     */
     protected $dbCategoryLabel = 'name';
 
 
 
 
 
-	/**
+    /**
      * Fetch children.
      * 
      * Example to generate nested tree:
@@ -61,7 +62,7 @@ class Category extends AbstractControl implements LazyLoadInterface
      */
     public function getChildren($nodeId = 1, $self = true, $nested = true)
     {
-    	# If depth specified then self will be ignore.
+        # If depth specified then self will be ignore.
         # @param  mixed $depth - node depth (e.g direct children = 1) 
         $depth = null;
         $useDepth = (!is_null($depth) && is_numeric($depth));
@@ -89,10 +90,10 @@ class Category extends AbstractControl implements LazyLoadInterface
         }
 
         $cols += [
-			'parent' => new Literal('c2.parent_id')
-			,'path' => new Literal('GROUP_CONCAT(bc.parent_id ORDER BY bc.depth DESC)')
-			,'depth' => new Literal('c1.depth')
-			#,$alias => new Literal("t.{$column}")
+            'parent' => new Literal('c2.parent_id')
+            ,'path' => new Literal('GROUP_CONCAT(bc.parent_id ORDER BY bc.depth DESC)')
+            ,'depth' => new Literal('c1.depth')
+            #,$alias => new Literal("t.{$column}")
         ];
 
         #echo '<pre>';
@@ -106,84 +107,85 @@ class Category extends AbstractControl implements LazyLoadInterface
         $select->from(['c1' => $dbClosure]);
         $select->join(['t' => $dbCategory], "t.{$this->dbCategoryPrimary} = c1.child_id", []);
         $select->join(['c2' => $dbClosure], new Literal('c2.depth IN(1) AND c2.child_id = c1.child_id'), [], 'left'); // ugh backticking INTs in #joins @TODO
-		$select->join(['bc' => $dbClosure], '(c1.child_id = bc.child_id)', []);
+        $select->join(['bc' => $dbClosure], '(c1.child_id = bc.child_id)', []);
 
-		#
-		$where = $this->getWhere()
-			->equalTo('c1.parent_id', $nodeId)
-			->equalTo('c1.group_id', $this->groupId);
-	
-		if(!$self)
+        #
+        $where = $this->getWhere()
+            ->equalTo('c1.parent_id', $nodeId)
+            ->equalTo('c1.group_id', $this->groupId);
+    
+        if(!$self)
         {
-        	$where->notEqualTo('c1.child_id', $nodeId);
+            $where->notEqualTo('c1.child_id', $nodeId);
         }
 
         if($useDepth)
         {
-        	$where->equalTo('c1.depth', $depth);
+            $where->equalTo('c1.depth', $depth);
         }
 
         $select->where($where);
 
-		#
-		$select->group('c1.child_id');
+        #
+        $select->group('c1.child_id');
         $select->group('c2.parent_id');
         $select->group('c1.depth');
 
         #$dbClosure->debugSql($select);
 
-		#
-		$result = [];
+        #
+        $result = [];
 
-		#
-		$rowset = $dbClosure->executeCustomSelect($select);
+        #
+        $rowset = $dbClosure->executeCustomSelect($select, $this->getContainer()->get('Com\Entity\Record'));
 
         #echo '<pre>';
         #print_r($rowset->toArray());
+        #echo '</pre>';
         #exit;
 
-		if($rowset->count())
-		{
-			if($nested && !$useDepth)
-			{
-				$trees = array();
-            	$root = null;
-            	$id = $this->dbCategoryPrimary;
+        if($rowset->count())
+        {
+            if($nested && !$useDepth)
+            {
+                $trees = array();
+                $root = null;
+                $id = $this->dbCategoryPrimary;
 
-            	foreach($rowset as $row)
-	            {
-	            	$row = $row->toArray();
-	                $trees[$row[$id]] = $row;
-	            }
+                foreach($rowset as $row)
+                {
+                    $row = $row->toArray();
+                    $trees[$row[$id]] = $row;
+                }
 
-	            foreach($trees as $key => $row)
-	            {
-	                if(!$root)
-	                {
-	                    $root = $row['parent'];
-	                }
+                foreach($trees as $key => $row)
+                {
+                    if(!$root)
+                    {
+                        $root = $row['parent'];
+                    }
 
-	                $trees[$row['parent']]['children'][$key] =& $trees[$key];
-	            }
+                    $trees[$row['parent']]['children'][$key] =& $trees[$key];
+                }
 
-	            $result = $trees[$root];
+                $result = $trees[$root];
 
-	            if(!$self)
-	            {
-	                $result = $result['children'];
-	            }
-	            else
-	            {
-	            	$result = isset($result['id']) ? $result : array_shift($result['children']);
-	            }
-			}
-			else
-			{
-				$result = $rowset->toArray();
-			}
-		}
+                if(!$self)
+                {
+                    $result = $result['children'];
+                }
+                else
+                {
+                    $result = isset($result['id']) ? $result : array_shift($result['children']);
+                }
+            }
+            else
+            {
+                $result = $rowset->toArray();
+            }
+        }
 
-		return $result;
+        return $result;
     }
 
 
@@ -237,7 +239,7 @@ class Category extends AbstractControl implements LazyLoadInterface
             'parent' => new Literal('c3.parent_id')
             ,'path' => new Literal('GROUP_CONCAT(bc.parent_id ORDER BY bc.depth DESC)')
             ,'depth' => new Literal('c1.depth')
-            ,$alias => new Literal("CONCAT(REPEAT('{$sep}', (c1.`depth`)), ' ', rt2.`{$column}`)")
+            ,$alias => new Literal("CONCAT(REPEAT('{$sep}', (c1.`depth`)), '', rt2.`{$column}`)")
         ];
         #
         
@@ -393,6 +395,23 @@ class Category extends AbstractControl implements LazyLoadInterface
     }
 
 
+
+    function getNested($self = true)
+    {
+        $roots = $this->getRoot() ;
+        $nested = true;
+
+        $result = array();
+        foreach($roots as $item)
+        {
+            $nodeId = $item['id'];    
+            $result[] = $this->getChildren($nodeId, $self, $nested);
+        }
+
+        return $result;
+    }
+
+
     /**
      * Get (all) root nodes.
      */
@@ -430,7 +449,10 @@ class Category extends AbstractControl implements LazyLoadInterface
 
         $select->where($where);
 
-        $rowset = $dbClosure->executeCustomSelect($select);
+        #$dbClosure->debugSql($select);
+
+        $rowset = $dbClosure->executeCustomSelect($select, $this->getContainer()->get('Com\Entity\Record'));
+
         $result = array();
         if($rowset)
         {
@@ -451,9 +473,41 @@ class Category extends AbstractControl implements LazyLoadInterface
      * 
      * @param int nodeId  node to be moved
      * @param int target node
-     * @return void
+     * @return bool
      */
     public function move($nodeId, $targetId)
+    {
+        $dbClosure = $this->getDbCategory();
+
+        $adapter = $dbClosure->getDbAdapter();
+        $connection1 = $adapter->getDriver()
+            ->getConnection();
+
+
+        try
+        {
+            $this->_move($nodeId, $targetId, $adapter);
+
+            if($connection1->inTransaction())
+            {
+                $connection1->commit();
+            }
+        }
+        catch(\Exception $e)
+        {
+            $this->getCommunicator()->setException($e);
+
+            if($connection1->inTransaction())
+            {
+                $connection1->rollback();
+            }
+        }
+
+        $this->getCommunicator()->isSuccess();
+    }
+
+
+    protected function _move($nodeId, $targetId, $adapter)
     {
         $this->_defaultGroup();
 
@@ -461,7 +515,6 @@ class Category extends AbstractControl implements LazyLoadInterface
         $targetId = intval($targetId);
 
         $dbClosure = $this->getDbClosure();
-        $adapter = $dbClosure->getDbAdapter();
 
         // MySQL’s multi-table DELETE
         $query1 = '';
@@ -486,7 +539,12 @@ class Category extends AbstractControl implements LazyLoadInterface
         $query2 .= "AND a.child_id = {$targetId} ";
         $query2 .= "AND a.group_id = {$this->groupId} ";
 
-        $res2 = $adapter->query($query2)->execute();;
+        $res2 = $adapter->query($query2)->execute();
+
+        #echo $query1;
+        #echo PHP_EOL, PHP_EOL;
+        #echo $query2;
+
 
         #
         return $res1->getAffectedRows() && $res2->getAffectedRows();
@@ -551,53 +609,317 @@ class Category extends AbstractControl implements LazyLoadInterface
     
     /**
      * @param $entity AbstractEntity
+     * @param int $targetId target id
      */
-    function edit(AbstractEntity $entity)
+    function edit(AbstractEntity $entity, $targetId = null)
     {
         $dbCategory = $this->getDbCategory();
 
-        $this->_checkEntity($entity, $dbCategory);
+        $connection1 = $dbCategory->getDbAdapter()
+            ->getDriver()
+            ->getConnection();
 
-        if($entity->id)
+
+        try
         {
-            throw new \Exception('No id value was provided');
+            if(!$connection1->inTransaction())
+            {
+                $connection1->beginTransaction();
+            }
+
+            $this->_checkEntity($entity, $dbCategory);
+
+            if($entity->id)
+            {
+                throw new \Exception('No id value was provided');
+            }
+
+            $where = $this->getWhere()
+                ->equalTo('id', $entity->id);
+
+            $dbCategory->doUpdate($entity->toArray(), $where);
+
+
+            if(!is_null($targetId))
+            {
+                $this->move($entity->id, $targetId);
+            }
+
+
+            if($connection1->inTransaction())
+            {
+                $connection1->commit();
+            }
+        }
+        catch(\Exception $e)
+        {
+            $this->getCommunicator()->setException($e);
+
+            if($connection1->inTransaction())
+            {
+                $connection1->rollback();
+            }
         }
 
-        $where = $this->getWhere()
-            ->equalTo('id', $entity->id);
-
-        $dbCategory->doUpdate($entity->toArray(), $where);
-        return $this;
+        $this->getCommunicator()->isSuccess();
     }
+
+
+    /**
+     * Add a node (as last child) of $targetId
+     *
+     * @param AbstractEntity $entity
+     * @param int $targetId target id
+     * @return int - the node id
+     */
+    public function add(AbstractEntity $entity, $targetId = 0)
+    {
+        $dbCategory = $this->getDbCategory();
+        $connection1 = $dbCategory->getDbAdapter()
+            ->getDriver()
+            ->getConnection();
+
+        #
+        $dbClosure = $this->getDbClosure();
+        $connection2 = $dbClosure->getDbAdapter()
+            ->getDriver()
+            ->getConnection();
+
+
+        try
+        {
+            if(!$connection1->inTransaction())
+            {
+                $connection1->beginTransaction();
+            }
+
+            #
+            if(!$connection2->inTransaction())
+            {
+                $connection2->beginTransaction();
+            }
+
+            #
+            $this->_defaultGroup();
+
+            $this->_checkEntity($entity, $dbCategory);
+
+            $in = $entity->toArray();
+
+            $dbCategory->doInsert($in);
+            $nodeId = $dbCategory->getLastInsertValue();
+
+            $id = $this->_add($nodeId, $targetId, $dbClosure->getDbAdapter());
+
+            #
+            $this->getCommunicator->setSuccess(null, array('id' => $id));
+
+
+            if($connection1->inTransaction())
+            {
+                $connection1->commit();
+            }
+            
+            if($connection2->inTransaction())
+            {
+                $connection2->commit();
+            }
+
+            return $id;
+        }    
+        catch(\Exception $e)
+        {
+            $this->getCommunicator()->setException($e);
+
+            if($connection1->inTransaction())
+            {
+                $connection1->rollback();
+            }
+            
+            if($connection2->inTransaction())
+            {
+                $connection2->rollback();
+            }
+        }
+
+        $this->getCommunicator()->isSuccess();
+    }
+
+
+
+    /**
+     * @param array $data
+     */
+    /*
+    function updateTree(array $data)
+    {
+        $dbCategory = $this->getDbCategory();
+        $connection1 = $dbCategory->getDbAdapter()
+            ->getDriver()
+            ->getConnection();        
+
+        #
+        $dbClosure = $this->getDbClosure();
+        $connection2 = $dbClosure->getDbAdapter()
+            ->getDriver()
+            ->getConnection();
+
+
+        try
+        {
+            if(!$connection1->inTransaction())
+            {
+                $connection1->beginTransaction();
+            }
+
+            #
+            if(!$connection2->inTransaction())
+            {
+                $connection2->beginTransaction();
+            }
+
+            $entity = $dbCategory->getEntity();
+
+            #
+            $this->_updateTree($data, $entity);
+
+            #
+            $where = $this->getWhere()
+                ->equalTo('group_id', $this->groupId);
+
+            $dbClosure->doDelete($where);
+
+            $this->_rebuildClosure($data, $dbClosure);
+
+            #
+            if($connection1->inTransaction())
+            {
+                $connection1->commit();
+            }
+            
+            if($connection2->inTransaction())
+            {
+                $connection2->commit();
+            }
+        }
+        catch(\Exception $e)
+        {
+            $this->getCommunicator()->setException($e);
+
+            if($connection1->inTransaction())
+            {
+                $connection1->rollback();
+            }
+            
+            if($connection2->inTransaction())
+            {
+                $connection2->rollback();
+            }
+        }
+
+        $this->getCommunicator()->isSuccess();
+    }
+    */
+
+
+    /**
+     * This method was created to be called from updateTree()
+     * @param array $data
+     */
+    /*
+    protected function _updateTree(array &$data, AbstractEntity $entity)
+    {
+        #
+        foreach($data as $key => $item)
+        {
+            $this->_saveItemTree($item, $entity);
+
+            if(isset($item['children']) && is_array($item['children']))
+            {
+                $this->_updateTree($item['children'], $entity);
+            }
+        }
+    }
+    */
+
+
+    /**
+     * This method was created to be called from updateTree()
+     * @param array $data
+     * @param AbstractDb $dbClosure
+     */
+    /*
+    protected function _rebuildClosure(array $data, $dbClosure, $parent = 0)
+    {
+        foreach($data as $item)
+        {
+            $this->_add($item['id'], $parent, $dbClosure->getDbAdapter());
+
+            if(isset($item['children']) && is_array($item['children']))
+            {
+                $this->_rebuildClosure($item['children'], $dbClosure, $item['id']);
+            }
+        }
+    }
+    */
+
+
+
+
+
+
 
 
 
 
     /**
-     * Add a node (as last child).
-     *
-     * @param int $targetId target id
+     * This method was created to be called from updateTree()
+     * @param array $item
      * @param AbstractEntity $entity
+     */
+    /*
+    protected function _saveItemTree(array &$item, AbstractEntity $entity)
+    {
+        $entity->id = $item['id'];
+        if($entity->id > 0)
+        {
+            if($entity->fillByPrimaryKey())
+            {
+                $entity->populate($item);
+                $entity->doUpdate();
+            }
+            else
+            {
+                throw new \Exception('Error Processing Request');
+            }
+        }
+        else
+        {
+            $entity->id = null;
+            $entity->populate($item);
+            $item['id'] = $entity->doInsert();
+        }
+    }
+    */
+
+
+    
+
+
+    /**
+     * Add a node (as last child) of $targetId
+     *
+     * @param int $nodeId
+     * @param int $targetId target id
      * @return int - the node id
      */
-    public function add($targetId, AbstractEntity $entity)
+    protected function _add($nodeId, $targetId, $adapter)
     {
-        $this->_defaultGroup();
-
-        $dbCategory = $this->getDbCategory();
         $dbClosure = $this->getDbClosure();
-
-        $this->_checkEntity($entity, $dbCategory);
-
-        $entity->id = null;
-        $in = $entity->toArray();
-
-        $dbCategory->doInsert($in);
-        $nodeId = $dbCategory->getLastInsertValue();
 
         #
         $targetId = intval($targetId);
-        $adapter = $this->getDbAdapter();
+        $nodeId = intval($nodeId);
 
         $sql = 'SELECT parent_id, ' . $nodeId . ', (depth + 1), '. $this->groupId . '
                 FROM ' . $dbClosure . ' 
@@ -610,9 +932,6 @@ class Category extends AbstractControl implements LazyLoadInterface
 
         return $nodeId;
     }
-
-
-
 
 
 
@@ -670,62 +989,62 @@ class Category extends AbstractControl implements LazyLoadInterface
     }
 
 
-	/**
-	 * @param AbstractDb $db
-	 * @return Category
-	 */
-	function setDbCategory(AbstractDb $db, $primaryKey = 'id', $labelColumn = 'name')
-	{
-		$this->dbCategory = $db;
-		$this->dbCategoryPrimary = $primaryKey;
-        $this->dbCategoryLabel = $labelColumn;
-		return $this;
-	}
-
-	/**
-	 * @return AbstractDb
-	 */
-	function getDbCategory()
-	{
-		if(!$this->dbCategory instanceof AbstractDb)
-		{
-			$dbCategory = $this->getContainer()
-				->get('Com\Db\Closure\Category');
-
-			$this->setDbCategory($dbCategory);
-		}
-
-		return $this->dbCategory;
-	}
-
-
-	/**
-	 * @param AbstractDb $db
-	 * @return Category
-	 */
-	function setDbGroup(AbstractDb $db)
-	{
-		$this->dbGroup = $db;
-
-		return $this;
-	}
-
-	
     /**
-	 * @return AbstractDb
-	 */
-	function getDbGroup()
-	{
-		if(!$this->dbGroup instanceof AbstractDb)
-		{
-			$dbGroup = $this->getContainer()
-				->get('Com\Db\Closure\Group');
+     * @param AbstractDb $db
+     * @return Category
+     */
+    function setDbCategory(AbstractDb $db, $primaryKey = 'id', $labelColumn = 'name')
+    {
+        $this->dbCategory = $db;
+        $this->dbCategoryPrimary = $primaryKey;
+        $this->dbCategoryLabel = $labelColumn;
+        return $this;
+    }
 
-			$this->setDbGroup($dbGroup);
-		}
+    /**
+     * @return AbstractDb
+     */
+    function getDbCategory()
+    {
+        if(!$this->dbCategory instanceof AbstractDb)
+        {
+            $dbCategory = $this->getContainer()
+                ->get('Com\Db\Closure\Category');
 
-		return $this->dbGroup;
-	}
+            $this->setDbCategory($dbCategory);
+        }
+
+        return $this->dbCategory;
+    }
+
+
+    /**
+     * @param AbstractDb $db
+     * @return Category
+     */
+    function setDbGroup(AbstractDb $db)
+    {
+        $this->dbGroup = $db;
+
+        return $this;
+    }
+
+    
+    /**
+     * @return AbstractDb
+     */
+    function getDbGroup()
+    {
+        if(!$this->dbGroup instanceof AbstractDb)
+        {
+            $dbGroup = $this->getContainer()
+                ->get('Com\Db\Closure\Group');
+
+            $this->setDbGroup($dbGroup);
+        }
+
+        return $this->dbGroup;
+    }
 
 
     /**
@@ -738,62 +1057,62 @@ class Category extends AbstractControl implements LazyLoadInterface
     }
 
 
-	/**
+    /**
      * 
      * @param AbstractDb|int|string $groupOrDb
      */
     protected function _setGroup($groupOrDb)
     {
-    	$isInt = false;
-    	if($groupOrDb instanceof AbstractDb)
-    	{
-    		$group = $groupOrDb->getTable();
-    	}
-    	elseif(is_string($groupOrDb) && !is_numeric($groupOrDb))
-    	{
-    		$group = $groupOrDb;
-    	}
-    	else
-    	{
-    		$isInt = true;
-    		$group = $groupOrDb;
-    	}
+        $isInt = false;
+        if($groupOrDb instanceof AbstractDb)
+        {
+            $group = $groupOrDb->getTable();
+        }
+        elseif(is_string($groupOrDb) && !is_numeric($groupOrDb))
+        {
+            $group = $groupOrDb;
+        }
+        else
+        {
+            $isInt = true;
+            $group = $groupOrDb;
+        }
 
-    	#
-    	$dbGroup = $this->getDbGroup();
+        #
+        $dbGroup = $this->getDbGroup();
 
-   		if(!$isInt)
-   		{
-			$where = $this->getWhere()
-				->equalTo('name', $group);
+        if(!$isInt)
+        {
+            $where = $this->getWhere()
+                ->equalTo('name', $group);
 
-			$row = $dbGroup->findBy($where)->current();
-			if(!$row)
-			{
-				$in = array(
-	                'name' => $group
-	            );
+            $row = $dbGroup->findBy($where)->current();
+            if(!$row)
+            {
+                $in = array(
+                    'name' => $group
+                );
 
-	            $dbGroup->doInsert($in);
-	            $groupId = $dbGroup->getLastInsertValue();
-			}
-			else
-			{
-				$groupId = $row->id;
-			}
-   		}
-   		else
-   		{
-   			$row = $dbGroup->findByPrimarykey($group);
-   			if(!$row)
-   			{
-   				throw new \Exception("Group '$group' not found in closure table");
-   			}
+                $dbGroup->doInsert($in);
+                $groupId = $dbGroup->getLastInsertValue();
+            }
+            else
+            {
+                $groupId = $row->id;
+            }
+        }
+        else
+        {
+            $row = $dbGroup->findByPrimarykey($group);
+            if(!$row)
+            {
+                throw new \Exception("Group '$group' not found in closure table");
+            }
 
-   			$groupId = $group;
-   		}
+            $groupId = $group;
+        }
 
-   		$this->groupId = $groupId;
+        $this->groupId = $groupId;
         return $this;
     }
 
@@ -805,7 +1124,7 @@ class Category extends AbstractControl implements LazyLoadInterface
     {
         if(!$this->groupId)
         {
-        	$groupOrDb = $this->getDbCategory();
+            $groupOrDb = $this->getDbCategory();
             $this->_setGroup($groupOrDb);
         }
 
