@@ -15,6 +15,61 @@ abstract class AbstractInputFilter extends InputFilter implements ContainerAware
     protected $container;
 
     /**
+     * @var array
+     */
+    protected $params = array();
+
+
+
+    /**
+     * @param array $data
+     */
+    function setParams($data)
+    {
+        foreach($data as $key => $value)
+        {
+            $this->setParam($key, $value);
+        }
+
+        return $this;
+    }
+
+
+    /**
+     * @param string $key
+     * @param string $value
+     */
+    function setParam($key, $value)
+    {
+        $this->params[$key] = $value;
+        return $this;
+    }
+
+
+    /**
+     * @param string $key
+     * @param string $default
+     */
+    function getParam($key, $default = null)
+    {
+        if($this->hasParam($key))
+        {
+            $default = $this->params[$key];
+        }
+
+        return $default;
+    }
+
+
+    /**
+     * @param string $key
+     */
+    function hasParam($key)
+    {
+        return isset($this->params[$key]);
+    }
+
+    /**
      * @param ContainerInterface $container
      */
     function setContainer(ContainerInterface $container)
