@@ -10,7 +10,7 @@ use Interop\Container\ContainerInterface;
 use Com\ContainerAwareInterface;
 use Com\LazyLoadInterface;
 
-abstract class AbstractObject implements ContainerAwareInterface, LazyLoadInterface
+abstract class AbstractObject implements ContainerAwareInterface, LazyLoadInterface, \ArrayAccess
 {
     /**
      * @var ContainerInterface
@@ -525,6 +525,30 @@ abstract class AbstractObject implements ContainerAwareInterface, LazyLoadInterf
     function __toString()
     {
         return $this->toString();
+    }
+
+
+
+    function offsetExists($offset)
+    {
+        return $this->__isset($offset);
+    }
+
+    
+    function offsetGet($offset)
+    {
+        return $this->__get($offset);
+    }
+
+    function offsetSet($offset, $value)
+    {
+        $this->__set($offset, $value);
+    }
+
+
+    function offsetUnset($offset)
+    {
+        $this->__unset($offset);
     }
 
 
