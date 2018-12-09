@@ -4,7 +4,8 @@ use Com\LazyLoadInterface;
 use Zend\Db\ResultSet\AbstractResultSet;
 use Com\Db\AbstractDb;
 use Zend\Db\Sql\Literal;
-use Zend\Db\Sql\Select;
+use Zend\Db\Sql\Expression;
+use Com\Db\Sql\Select;
 use Com\ArrayUtils;
 use Com\Entity\AbstractEntity;
 use Zend\Stdlib\Parameters;
@@ -16,6 +17,11 @@ class Category extends AbstractControl implements LazyLoadInterface
      * @var AbstractDb
      */
     protected $dbCategory;
+
+    /**
+     * @var AbstractDb
+     */
+    protected $dbSort;
 
     /**
      * @var AbstractDb
@@ -80,6 +86,7 @@ class Category extends AbstractControl implements LazyLoadInterface
         #
         $dbClosure = $this->getDbClosure();
         $dbCategory = $this->getDbCategory();
+        $dbSort = $this->getDbSort();
 
         #
         $cols = $dbCategory->getEntity()->getEntityColumns();
@@ -93,6 +100,7 @@ class Category extends AbstractControl implements LazyLoadInterface
             'parent' => new Literal('c2.parent_id')
             ,'path' => new Literal('GROUP_CONCAT(bc.parent_id ORDER BY bc.depth DESC)')
             ,'depth' => new Literal('c1.depth')
+            ,'sort' => new Literal('sort.sort')
             #,$alias => new Literal("t.{$column}")
         ];
 
@@ -108,6 +116,7 @@ class Category extends AbstractControl implements LazyLoadInterface
         $select->join(['t' => $dbCategory], "t.{$this->dbCategoryPrimary} = c1.child_id", []);
         $select->join(['c2' => $dbClosure], new Literal('c2.depth IN(1) AND c2.child_id = c1.child_id'), [], 'left'); // ugh backticking INTs in #joins @TODO
         $select->join(['bc' => $dbClosure], '(c1.child_id = bc.child_id)', []);
+        $select->join(['sort' => $dbSort], new Expression('sort.category_id = t.id AND sort.group_id = ?', $this->groupId), [], 'left');
 
         #
         $where = $this->getWhere()
@@ -125,6 +134,7 @@ class Category extends AbstractControl implements LazyLoadInterface
         }
 
         $select->where($where);
+        $select->order('sort.sort ASC');
 
         #
         $select->group('c1.child_id');
@@ -155,7 +165,18 @@ class Category extends AbstractControl implements LazyLoadInterface
                 foreach($rowset as $row)
                 {
                     $row = $row->toArray();
-                    $trees[$row[$id]] = $row;
+
+                    if($row['depth'])
+                    {
+                        $row['indented'] = str_repeat('-', $row['depth']) . " {$row['name']}";
+                    }
+                    else
+                    {
+                        $row['indented'] = $row['name'];
+                    }
+                    
+                    $k = $row[$id];
+                    $trees["_{$k}"] = $row;
                 }
 
                 foreach($trees as $key => $row)
@@ -165,10 +186,11 @@ class Category extends AbstractControl implements LazyLoadInterface
                         $root = $row['parent'];
                     }
 
-                    $trees[$row['parent']]['children'][$key] =& $trees[$key];
+                    $k = $row['parent'];
+                    $trees["_{$k}"]['children'][$key] =& $trees[$key];
                 }
 
-                $result = $trees[$root];
+                $result = $trees["_{$root}"];
 
                 if(!$self)
                 {
@@ -189,97 +211,48 @@ class Category extends AbstractControl implements LazyLoadInterface
     }
 
 
-    /**
-     * @param int|int[] $rootNode
-     * @param string $sep
-     * @return array
-     */
-    public function getRecords($rootNode = null, $sep = '-')
+
+    function sort(array $data)
     {
-        $this->_defaultGroup();
+        $flag = false;
+        $dbSort = $this->getDbSort();
 
-        if(is_null($rootNode))
+        #
+        $where = array(
+            'group_id' => $this->groupId
+        );
+        $dbSort->doDelete($where);
+
+        #
+        $this->_sort($dbSort, $data);
+
+        return true;
+    }
+
+
+    protected function _sort($dbSort, $data, $isChild = false)
+    {
+        $counter = 1;
+        foreach($data as $item)
         {
-            $rowset = $this->getRoot();
-            if($rowset)
+            if(is_array($item) && isset($item['id']))
             {
-                $rootNode = $this->_array_pluck($rowset, 'id');
+                $in = array(
+                    'group_id' => $this->groupId,
+                    'category_id' => $item['id'],
+                    'sort' => $counter,
+                );
+
+                $counter++;
+
+                $dbSort->doInsert($in);
+
+                if(isset($item['children']) && count($item['children']))
+                {
+                    $this->_sort($dbSort, $item['children'], true);
+                }
             }
-            else
-            {
-                $rootNode = array(0);
-            }
         }
-        else
-        {
-            if(!is_array($rootNode))
-            {
-                $rootNode = array($rootNode);
-            }
-        }
-
-        #
-        $dbClosure = $this->getDbClosure();
-        $dbCategory = $this->getDbCategory();
-
-        $lbl = $this->_getLabelColumn(); 
-        $alias = $lbl['alias'];
-        $column = $lbl['column'];
-
-        
-        #
-        $cols = $dbCategory->getEntity()->getEntityColumns();
-        foreach($cols as $key => $col)
-        {
-            $cols[$col] = new Literal("rt2.$col");
-            unset($cols[$key]);
-        }
-
-        $cols += [
-            'parent' => new Literal('c3.parent_id')
-            ,'path' => new Literal('GROUP_CONCAT(bc.parent_id ORDER BY bc.depth DESC)')
-            ,'depth' => new Literal('c1.depth')
-            ,$alias => new Literal("CONCAT(REPEAT('{$sep}', (c1.`depth`)), '', rt2.`{$column}`)")
-        ];
-        #
-        
-
-        $select = new Select();
-        $select->columns($cols);
-
-        $select->from(['rt1' => $dbCategory]);
-        $select->join(['c1' => $dbClosure], "(c1.parent_id = rt1.{$this->dbCategoryPrimary})", []);
-        $select->join(['rt2' => $dbCategory], 'c1.child_id = rt2.id', []);
-        $select->join(['c2' => $dbClosure], new Literal('c2.child_id = rt2.id AND c2.depth = 0'), [], 'left');
-        $select->join(['c3' => $dbClosure], new LIteral('c3.child_id = rt2.id AND c3.depth IN(1)'), [], 'left');
-        $select->join(['bc' => $dbClosure], 'c1.child_id = bc.child_id', []);
-
-        #
-        $where = $this->getWhere()
-            ->equalTo('c2.group_id', $this->groupId)
-            ->in('rt1.id', $rootNode);
-
-        $select->where($where);
-
-        $select->group('c1.child_id');
-        $select->group('c3.parent_id');
-        $select->group('c1.depth');
-        
-        $select->order('path');
-
-        #$dbClosure->debugSql($select);
-
-        $rowset = $dbClosure->executeCustomSelect($select, $this->getContainer()->get('Com\Entity\Record'));
-        if(!$rowset->count())
-        {
-            $result = array();
-        }
-        else
-        {
-            $result = $rowset->toArray();
-        }
-
-        return $result;
     }
 
 
@@ -395,20 +368,68 @@ class Category extends AbstractControl implements LazyLoadInterface
     }
 
 
+     /**
+     * @return array
+     */
+    function getNested()
+    {
+        return $this->getRecords(true);
+    }
 
-    function getNested($self = true)
+
+    /**
+     * @return array
+     */
+    public function getRecords($nested = false)
     {
         $roots = $this->getRoot() ;
-        $nested = true;
 
         $result = array();
         foreach($roots as $item)
         {
-            $nodeId = $item['id'];    
-            $result[] = $this->getChildren($nodeId, $self, $nested);
+            $nodeId = $item['id'];
+            $result[] = $this->getChildren($nodeId, true, true);
+        }
+
+        if(!$nested)
+        {
+            $result = $this->_unnest($result);
         }
 
         return $result;
+    }
+
+
+    /**
+     * @param array $rowset
+     * @return array
+     */
+    protected function _unnest($rowset)
+    {
+        $ret = array();
+
+        foreach($rowset as $row)
+        {
+            if(isset($row['children']))
+            {
+                $children = $row['children'];
+                unset($row['children']);
+
+                $ret[] = $row;
+
+                $x = $this->_unnest($children);
+                foreach($x as $item)
+                {
+                    $ret[] = $item;
+                }
+            }
+            else
+            {
+                $ret[] = $row;
+            }
+        }
+
+        return $ret;        
     }
 
 
@@ -421,6 +442,7 @@ class Category extends AbstractControl implements LazyLoadInterface
 
         $dbClosure = $this->getDbClosure();
         $dbCategory = $this->getDbCategory();
+        $dbSort = $this->getDbSort();
 
 
         $cols = $dbCategory->getEntity()->getEntityColumns();
@@ -433,6 +455,7 @@ class Category extends AbstractControl implements LazyLoadInterface
         $cols += [
             'parent' => new Literal('c2.parent_id')
             ,'depth' => new Literal('c1.depth')
+            ,'sort' => new Literal('sort.sort')
         ];
 
         #
@@ -442,12 +465,14 @@ class Category extends AbstractControl implements LazyLoadInterface
         $select->from(['c1' => $dbClosure]);
         $select->join(['t' => $dbCategory], "t.{$this->dbCategoryPrimary} = c1.child_id", []);
         $select->join(['c2' => $dbClosure], new Literal('c1.child_id = c2.child_id AND c2.parent_id <> c2.child_id'), [], 'left');
+        $select->join(['sort' => $dbSort], new Expression('sort.category_id = t.id AND sort.group_id = ?', $this->groupId), [], 'left');
 
         $where = $this->getWhere()
             ->isNull('c2.child_id')
             ->equalTo('c1.group_id', $this->groupId);
 
         $select->where($where);
+        $select->order('sort.sort ASC');
 
         #$dbClosure->debugSql($select);
 
@@ -458,7 +483,7 @@ class Category extends AbstractControl implements LazyLoadInterface
         {
             foreach($rowset as $row)
             {
-                $result[$row->id] = $row->toArray();
+                $result[] = $row->toArray();
             }
         }
 
@@ -503,7 +528,7 @@ class Category extends AbstractControl implements LazyLoadInterface
             }
         }
 
-        $this->getCommunicator()->isSuccess();
+        return $this->getCommunicator()->isSuccess();
     }
 
 
@@ -629,7 +654,7 @@ class Category extends AbstractControl implements LazyLoadInterface
 
             $this->_checkEntity($entity, $dbCategory);
 
-            if($entity->id)
+            if(!$entity->id)
             {
                 throw new \Exception('No id value was provided');
             }
@@ -661,7 +686,7 @@ class Category extends AbstractControl implements LazyLoadInterface
             }
         }
 
-        $this->getCommunicator()->isSuccess();
+        return $this->getCommunicator()->isSuccess();
     }
 
 
@@ -712,7 +737,7 @@ class Category extends AbstractControl implements LazyLoadInterface
             $id = $this->_add($nodeId, $targetId, $dbClosure->getDbAdapter());
 
             #
-            $this->getCommunicator->setSuccess(null, array('id' => $id));
+            $this->getCommunicator()->setSuccess(null, array('id' => $id));
 
 
             if($connection1->inTransaction())
@@ -742,7 +767,7 @@ class Category extends AbstractControl implements LazyLoadInterface
             }
         }
 
-        $this->getCommunicator()->isSuccess();
+        return $this->getCommunicator()->isSuccess();
     }
 
 
@@ -930,6 +955,15 @@ class Category extends AbstractControl implements LazyLoadInterface
         $query = 'INSERT INTO ' . $dbClosure . ' (`parent_id`, `child_id`, `depth`, `group_id`) ' . $sql;
         $result = $adapter->query($query)->execute();
 
+        #
+        $in = array(
+            'group_id' => $this->groupId,
+            'category_id' => $nodeId,
+            'sort' => 999999,
+        );
+        $this->getDbSort()->doInsert($in);
+
+        #
         return $nodeId;
     }
 
@@ -959,6 +993,38 @@ class Category extends AbstractControl implements LazyLoadInterface
             'column' => $column,
             'alias' => $alias,
         );
+    }
+
+
+
+    /**
+     * @param AbstractDb $db
+     * @return Category
+     */
+    function setDbSort(AbstractDb $db)
+    {
+        $this->dbSort = $db;
+
+        return $this;
+    }
+
+
+
+
+    /**
+     * @return AbstractDb
+     */
+    function getDbSort()
+    {
+        if(!$this->dbSort instanceof AbstractDb)
+        {
+            $this->dbSort = $this->getContainer()
+                ->get('Com\Db\Closure\Sort');
+
+            $this->setDbSort($this->dbSort);
+        }
+
+        return $this->dbSort;
     }
 
 
