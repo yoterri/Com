@@ -153,9 +153,9 @@ class Db extends AbstractWriter
             $in['get'] = print_r($_GET, 1);
         }
 
-        if(isset($_FILE) && count($_FILE))
+        if(isset($_FILES) && count($_FILES))
         {
-            $in['file'] = print_r($_FILE, 1);
+            $in['file'] = print_r($_FILES, 1);
         }
 
         if(isset($_SESSION) && count($_SESSION))
