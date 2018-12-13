@@ -13,9 +13,7 @@ use Com\ContainerAwareInterface;
 use Zend\EventManager\EventManagerAwareInterface;
 use Interop\Container\ContainerInterface;
 
-abstract class AbstractForm extends Form 
-    implements EventManagerAwareInterface,
-    LazyLoadInterface, ContainerAwareInterface
+abstract class AbstractForm extends Form  implements LazyLoadInterface, yEventManagerAwareInterface, ContainerAwareInterface
 {
     
     /**
@@ -141,7 +139,7 @@ abstract class AbstractForm extends Form
     
     protected function _triggerFieldsEvent(array $fields)
     {
-        $eventParams = ['fields' => $fields];
+        $eventParams = array('fields' => $fields);
         $event = new Event('form.fields', $this, $eventParams);
         
         $this->getEventManager()->triggerEvent($event);

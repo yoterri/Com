@@ -5,8 +5,12 @@ use Interop\Container\ContainerInterface;
 use Com\ContainerAwareInterface;
 use Zend\InputFilter\InputFilter;
 use Com\LazyLoadInterface;
+use Zend\EventManager\EventManagerAwareInterface;
+use Zend\EventManager\Event;
+use Zend\EventManager\EventManager;
+use Zend\EventManager\EventManagerInterface;
 
-abstract class AbstractInputFilter extends InputFilter implements ContainerAwareInterface, LazyLoadInterface
+abstract class AbstractInputFilter extends InputFilter implements LazyLoadInterface, EventManagerAwareInterface, ContainerAwareInterface
 {
 
     /**
@@ -18,6 +22,42 @@ abstract class AbstractInputFilter extends InputFilter implements ContainerAware
      * @var array
      */
     protected $params = array();
+
+    /**
+     * @var EventManagerInterface
+     */
+    protected $eventManager;
+
+
+
+    /**
+     * @param $eventManager EventManagerInterface
+     */
+    function setEventManager(EventManagerInterface $eventManager)
+    {
+        $eventManager->addIdentifiers(array(
+            get_called_class()
+        ));
+    
+        $this->eventManager = $eventManager;
+        
+        # $this->getEventManager()->trigger('sendTweet', null, array('content' => $content));
+        return $this;
+    }
+    
+    
+    /**
+     * @return EventManagerInterface
+     */
+    public function getEventManager()
+    {
+        if(null === $this->eventManager)
+        {
+            $this->setEventManager(new EventManager());
+        }
+
+        return $this->eventManager;
+    }
 
 
 
@@ -124,11 +164,24 @@ abstract class AbstractInputFilter extends InputFilter implements ContainerAware
     function build()
     {
         $filters = $this->getFilters();
+
+        $eventParams = array('filters' => $filters);
+        $event = $this->_triggerFilterEvent($eventParams, 'filters');
+        if($event->propagationIsStopped())
+        {
+            return $this;
+        }
+
+        #
+        $filters = $event->getParam('filters');
         
         #
-        foreach($filters as $filter)
+        if(is_array($filters))
         {
-            $this->add($filter);
+            foreach($filters as $filter)
+            {
+                $this->add($filter);
+            }
         }
         
         return $this;
@@ -144,11 +197,25 @@ abstract class AbstractInputFilter extends InputFilter implements ContainerAware
     {
         $values = parent::getValues();
 
+        #
+        $eventParams = array('values' => $values, 'only_provided' => $onlyProvided);
+        $event = $this->_triggerFilterEvent($eventParams, 'values');
+        if($event->propagationIsStopped())
+        {
+            return $values;
+        }
+
+        #
+        $values = $event->getParam('values');
+        $onlyProvided = $event->getParam('only_provided');
+
+        #
         if(!$onlyProvided)
         {
             return $values;
         }
 
+        #
         foreach($values as $key => $value)
         {
             if(!isset($this->data[$key]))
@@ -161,5 +228,17 @@ abstract class AbstractInputFilter extends InputFilter implements ContainerAware
     }
 
 
+
+    protected function _triggerFilterEvent(array $eventParams, $eventOption)
+    {
+        $event = new Event("input.{$eventOption}", $this, $eventParams);
+        
+        $this->getEventManager()->triggerEvent($event);
+        
+        return $event;
+    }
+
+
     abstract function getFilters();
+
 }
