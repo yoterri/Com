@@ -8,6 +8,7 @@ use Zend;
 use Com\LazyLoadInterface;
 use Com\Db\AbstractDb;
 use Zend\Db\Sql\Where;
+use Zend\Db\Sql\Expression;
 use Com\Object\AbstractObject;
 
 
@@ -96,9 +97,51 @@ abstract class AbstractEntity extends AbstractObject implements LazyLoadInterfac
     /**
      * @return array  
      */
-    function getEntityColumns()
+    function getEntityColumns($columnPrefrix = null, $tableAlias = null, array $exclude = array())
     {
-        return $this->getProperties();
+        $properties = $this->getProperties();
+
+        if(count($exclude))
+        {
+            foreach($exclude as $key)
+            {
+                $index = array_search($key, $properties);
+                if($index !== false)
+                {
+                    unset($properties[$index]);
+                }
+            }
+        }
+
+        #
+        if(!empty($columnPrefrix) || !empty($tableAlias))
+        {
+            $newProperties = array();
+
+            $counter = 0;
+            foreach($properties as $value)
+            {
+                if(!empty($tableAlias))
+                {
+                    $newKey = "{$columnPrefrix}{$value}";
+                    $newValue = new Expression("{$tableAlias}.{$value}");
+                }
+                else
+                {
+                    $newKey = $counter;
+                    $newValue = "{$columnPrefrix}{$value}";
+                }
+
+                $newProperties[$newKey] = $newValue;
+                $counter++;
+            }
+
+            $properties = $newProperties;
+            unset($newProperties);
+        }
+
+        #
+        return $properties;
     }
 
 

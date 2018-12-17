@@ -13,7 +13,7 @@ use Com\ContainerAwareInterface;
 use Zend\EventManager\EventManagerAwareInterface;
 use Interop\Container\ContainerInterface;
 
-abstract class AbstractForm extends Form  implements LazyLoadInterface, yEventManagerAwareInterface, ContainerAwareInterface
+abstract class AbstractForm extends Form  implements LazyLoadInterface, EventManagerAwareInterface, ContainerAwareInterface
 {
     
     /**

@@ -111,6 +111,19 @@ abstract class AbstractControl implements
 
 
     /**
+     * @param string $eventName
+     * @param array $eventParams
+     * @return Event
+     */
+    function triggerEvent($eventName, array $eventParams)
+    {
+        $event = new Event($eventName, $this, $eventParams);
+        $this->getEventManager()->triggerEvent($event);
+        return $event;
+    }
+
+
+    /**
      *
      * @param Adapter $adapter
      */
