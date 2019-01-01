@@ -165,8 +165,8 @@ abstract class AbstractInputFilter extends InputFilter implements LazyLoadInterf
     {
         $filters = $this->getFilters();
 
-        $eventParams = array('filters' => $filters);
-        $event = $this->_triggerFilterEvent($eventParams, 'filters');
+        $eventParams = array('filters' => $filters, 'params' => $this->params);
+        $event = $this->_triggerFilterEvent($eventParams, 'input.filters');
         if($event->propagationIsStopped())
         {
             return $this;
@@ -183,7 +183,28 @@ abstract class AbstractInputFilter extends InputFilter implements LazyLoadInterf
                 $this->add($filter);
             }
         }
+
+        #
+        $eventParams = array('params' => $this->params);
+        $event = $this->_triggerFilterEvent($eventParams, 'input.built');
         
+        return $this;
+    }
+
+
+    /**
+     * @param array $fields
+     */
+    function removeFields(array $fields)
+    {
+        foreach($fields as $item)
+        {
+            if(is_string($item) && $this->has($item))
+            {
+                $this->remove($item);
+            }
+        }
+
         return $this;
     }
 
@@ -199,7 +220,7 @@ abstract class AbstractInputFilter extends InputFilter implements LazyLoadInterf
 
         #
         $eventParams = array('values' => $values, 'only_provided' => $onlyProvided);
-        $event = $this->_triggerFilterEvent($eventParams, 'values');
+        $event = $this->_triggerFilterEvent($eventParams, 'input.values');
         if($event->propagationIsStopped())
         {
             return $values;
@@ -229,9 +250,9 @@ abstract class AbstractInputFilter extends InputFilter implements LazyLoadInterf
 
 
 
-    protected function _triggerFilterEvent(array $eventParams, $eventOption)
+    protected function _triggerFilterEvent(array $eventParams, $eventName)
     {
-        $event = new Event("input.{$eventOption}", $this, $eventParams);
+        $event = new Event($eventName, $this, $eventParams);
         
         $this->getEventManager()->triggerEvent($event);
         

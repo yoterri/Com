@@ -20,12 +20,36 @@ abstract class AbstractForm extends Form  implements LazyLoadInterface, EventMan
      * @var ContainerInterface
      */
     protected $container;
+
+    /**
+     * @var string
+     */
+    protected $version;
     
     
     /**
      * @var EventManagerInterface
      */
     protected $eventManager;
+
+
+    /**
+     * @param string $versionName
+     */
+    function setVersion($versionName)
+    {
+        $this->version = $versionName;
+        return $this;
+    }
+
+
+    /**
+     * @return string
+     */
+    function getVersion()
+    {
+        return $this->version;
+    }
     
     
     function reset($data, array $except = [])
@@ -145,7 +169,16 @@ abstract class AbstractForm extends Form  implements LazyLoadInterface, EventMan
         $this->getEventManager()->triggerEvent($event);
         
         return $event;
-    }   
+    }
+
+
+    protected function _triggerBuildEvent()
+    {
+        $event = new Event('form.built', $this);
+        $this->getEventManager()->triggerEvent($event);
+        
+        return $event;
+    } 
     
     
     function build()
@@ -165,7 +198,44 @@ abstract class AbstractForm extends Form  implements LazyLoadInterface, EventMan
         {
             $this->add($field);
         }
+
+        #
+        $event = $this->_triggerBuildEvent();
         
+
+        #
+        $version = $this->getVersion();
+        if($version)
+        {
+            $method = "{$version}Version";
+            if(method_exists($this, $method))
+            {
+                $callback = array($this, $method);
+                $result = call_user_func($callback);
+                if(is_array($result))
+                {
+                    $this->removeFields($result);
+                }
+            }
+        }
+
+        return $this;
+    }
+
+
+    /**
+     * @param array $fields
+     */
+    function removeFields(array $fields)
+    {
+        foreach($fields as $item)
+        {
+            if(is_string($item) && $this->has($item))
+            {
+                $this->remove($item);
+            }
+        }
+
         return $this;
     }
     
