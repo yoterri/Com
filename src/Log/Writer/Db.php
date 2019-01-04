@@ -17,6 +17,8 @@ class Db extends AbstractWriter
      */
     protected $dbTable;
 
+    protected $lastId = -1;
+
 
     /**
      * Constructor
@@ -29,6 +31,12 @@ class Db extends AbstractWriter
         {
             $this->setDbTable($dbTable);
         }
+    }
+
+
+    function getLastId()
+    {
+        return $this->getLastId;
     }
 
 
@@ -119,14 +127,11 @@ class Db extends AbstractWriter
             $in['body'] = $body;
         }
 
-        if(function_exists('getallheaders'))
+        $headers = $this->_getHeaders();
+        if($headers)
         {
-            $headers = \getallheaders();
-            if($headers)
-            {
-                $in['headers'] = print_r($headers, 1);
-            }
-        }        
+            $in['headers'] = print_r($headers, 1);
+        }
         
         if(isset($_SERVER['REQUEST_URI']))
         {
@@ -173,6 +178,66 @@ class Db extends AbstractWriter
             $in['post'] = print_r($_POST, 1);
         }
 
-        $this->dbTable->doInsert($in);
+        $this->getLastId = $this->dbTable->doInsert($in);
+    }
+
+
+
+    /**
+     * get all headers
+     */
+    protected function _getHeaders()
+    {
+        $headers = array();
+
+        if(!function_exists('getallheaders'))
+        {
+            $copy_server = array(
+                'CONTENT_TYPE'   => 'Content-Type',
+                'CONTENT_LENGTH' => 'Content-Length',
+                'CONTENT_MD5'    => 'Content-Md5',
+            );
+
+
+            foreach($_SERVER as $key => $value)
+            {
+                if(substr($key, 0, 5) === 'HTTP_')
+                {
+                    $key = substr($key, 5);
+                    if(!isset($copy_server[$key]) || !isset($_SERVER[$key]))
+                    {
+                        $key = str_replace(' ', '-', ucwords(strtolower(str_replace('_', ' ', $key))));
+                        $headers[$key] = $value;
+                    }
+                }
+                elseif(isset($copy_server[$key]))
+                {
+                    $headers[$copy_server[$key]] = $value;
+                }
+            }
+
+            if(!isset($headers['Authorization']))
+            {
+                if(isset($_SERVER['REDIRECT_HTTP_AUTHORIZATION']))
+                {
+                    $headers['Authorization'] = $_SERVER['REDIRECT_HTTP_AUTHORIZATION'];
+                }
+                elseif(isset($_SERVER['PHP_AUTH_USER']))
+                {
+                    $basic_pass = isset($_SERVER['PHP_AUTH_PW']) ? $_SERVER['PHP_AUTH_PW'] : '';
+                    $headers['Authorization'] = 'Basic ' . base64_encode($_SERVER['PHP_AUTH_USER'] . ':' . $basic_pass);
+                }
+                elseif(isset($_SERVER['PHP_AUTH_DIGEST']))
+                {
+                    $headers['Authorization'] = $_SERVER['PHP_AUTH_DIGEST'];
+                }
+            }
+        }
+        else
+        {
+            $headers = \getallheaders();
+        }
+
+        return $headers;
     }
 }
