@@ -5,6 +5,45 @@
  * @author <yoterri@ideasti.com>
  * @copyright 2014
  */
+
+/**
+
+ $postedFile = new PostedFile($_FILES);
+ $fileSaver = new = FileSaver($postedFile);
+
+ $fileSaver->setUploadPath('/full/path/to/upload/directory');
+
+ //path to the container folder of the uploaded file
+ $fileSaver->setContainerDirectory('directory_name');
+ $fileSaver->setAllowedExtensions(array('jpg', 'pdf'));
+ $fileSaver->setAllowedType(
+    array('image/jpeg' => 'jpg'
+    ,'application/pdf' => 'pdf')
+ );
+
+ $flag = $fileSaver->check();
+ if($uploaded)
+ {
+    $filename = $fileSaver->saveAs();
+    if($filename)
+    {
+        // relative path to the uploaded file
+        #$filename;
+        
+        // 
+        #$com = $fileSaver->getCommunicator();
+        #$com->getData('file_name');
+        #$com->getData('full_path');
+        #$com->getData('relative_path');
+    }   
+ }
+ 
+ if(!$uploaded)
+ {
+    $errors = $fileSaver->getCommunicator()->getErros();
+ }
+*/
+
 namespace Com;
 
 class FileSaver
@@ -656,13 +695,16 @@ class FileSaver
         $allowed = $this->getAllowedType();
         if(count($allowed))
         {
-            $pattern = '';
-            foreach($allowed as $value)
+            $isAllowed = false;
+            foreach($allowed as $mime => $ext)
             {
-                $pattern .= '(\.' . $value . ')$|';
+                if(strtolower($mime) == strtolower($postedFile->getType()))
+                {
+                    $isAllowed = true;
+                }
             }
-            
-            if(!preg_match("#$pattern#i", $postedFile->getType()))
+
+            if(!$isAllowed)
             {
                 $str = sprintf('(%s)', implode(', ', $allowed));
                 $msg = str_replace('###', $str, self::RESPONSE_MIME_TYPE_NOT_ALLOWED);
