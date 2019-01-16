@@ -2,7 +2,7 @@
 
 namespace Com\Factory;
 
-use Zend\ServiceManager\AbstractFactoryInterface;
+use Zend\ServiceManager\Factory\AbstractFactoryInterface;
 use Zend\ServiceManager\ServiceLocatorInterface;
 use Interop\Container\ContainerInterface;
 use Zend\EventManager\EventManager;
@@ -12,7 +12,8 @@ class AbstractFactory2 implements AbstractFactoryInterface
 {
     static protected $eventManager;
 
-    public function canCreateServiceWithName(ServiceLocatorInterface $serviceLocator, $name, $requestedName)
+    #canCreateServiceWithName(ServiceLocatorInterface $serviceLocator, $name, $requestedName)
+    public function canCreate(ContainerInterface $container, $requestedName)
     {
         $flag = false;
 
@@ -39,7 +40,9 @@ class AbstractFactory2 implements AbstractFactoryInterface
         return $flag;
     }
 
-    public function createServiceWithName(ServiceLocatorInterface $container, $name, $requestedName)
+
+    #createServiceWithName(ServiceLocatorInterface $container, $name, $requestedName)
+    public function __invoke(ContainerInterface $container, $requestedName, array $options = NULL)
     {
         $instance = new $requestedName();
 
@@ -96,7 +99,6 @@ class AbstractFactory2 implements AbstractFactoryInterface
         
         return $instance;
     }
-
 
 
     function getEventManager()
