@@ -396,7 +396,7 @@ class FileSaver
             return '';
         
         $new_umask = 0777;
-        $old_umask = umask($new_umask);
+        #$old_umask = umask($new_umask);
         
         $containerDirectory = $this->getContainerDirectory();
         if(! empty($containerDirectory))
