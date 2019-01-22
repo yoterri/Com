@@ -724,7 +724,14 @@ class AbstractDb extends TableGateway implements AdapterAwareInterface,
 
     function truncate()
     {
-        $this->getAdapter()->query("TRUNCATE TABLE {$this->getTable()};", Zend\Db\Adapter\Adapter::QUERY_MODE_EXECUTE);
+        $tableName = $this->getTable();
+        if(false === strpos($this->getTable(), '.'))
+        {
+            $driver = $this->getAdapter()->getPlatform();
+            $tableName = $driver->quoteIdentifier($tableName);
+        }
+
+        $this->getAdapter()->query("TRUNCATE TABLE {$tableName};", Zend\Db\Adapter\Adapter::QUERY_MODE_EXECUTE);
     }
 
 
