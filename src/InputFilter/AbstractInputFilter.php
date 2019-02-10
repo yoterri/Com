@@ -133,10 +133,29 @@ abstract class AbstractInputFilter extends InputFilter implements LazyLoadInterf
         {
             $data = $data->toArray();
         }
+
+        #
+        $eventParams = array('data' => $data, 'params' => $this->params);
+        $event = $this->_triggerFilterEvent($eventParams, 'set.data.pre');
+        $data = $event->getParam('data');
+
+        #
+        $this->_setDataPre($data);
         
+        #
         parent::setData($data);
 
+        #
+        $eventParams = array('data' => $data, 'params' => $this->params);
+        $event = $this->_triggerFilterEvent($eventParams, 'set.data.pos');
+
         return $this;
+    }
+
+
+    protected function _setDataPre($data)
+    {
+        ;
     }
 
 

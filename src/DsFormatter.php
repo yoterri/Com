@@ -135,7 +135,7 @@ class DsFormatter implements LazyLoadInterface
         }
         else
         {
-        	if(method_exists($data, 'toArray'))
+            if(method_exists($data, 'toArray'))
             {
                 
                 $r = $data->toArray();
@@ -147,12 +147,76 @@ class DsFormatter implements LazyLoadInterface
             }
             else
             {
-            	$r = $data;
+                $r = $data;
             }
         }
         
         return $r;
     }
+
+
+    /**
+    * @param string|array $textField
+    * @param string|array $valueField
+    * @example
+    *
+    * example 1
+    * $textField = array('te column is: %colname_1% xxx, other value %colname_2%', array('%colname_1%'=>'colname_1', '%colname_2%'=>'colname_2'));
+    * $valueField = array('te column is: %colname_3% xxx, other value %colname_4%', array('%colname_3%'=>'colname_3', '%colname_4%'=>'colname_4'));
+    * $formatter->toFormSelect($textField, $valueField);
+    *
+    * example 2
+    * $textField = 'column_1';
+    * $valueField = 'column_2';
+    * $formatter->toFormSelect($textField, $valueField);
+    *
+    * @return array
+    */
+   function toFormSelect($textField, $valueField)
+   {
+        $r = array();
+        $textIsArray = is_array($textField);
+        $valueIsArray = is_array($valueField);
+
+        foreach($this->_data as $row)
+        {
+            if($textIsArray)
+            {
+                $text = $this->_arrayFormatting($textField, $row);
+            }
+            else
+            {
+                $text = $row[$textField];
+            }
+                
+
+            if($valueIsArray)
+            {
+                $value = $this->_arrayFormatting($valueField, $row);
+            }
+            else
+            {
+                $value = $row[$valueField];
+            }
+
+            $r[$value] = $text;
+        }
+
+        return $r;
+   }
+
+
+   protected function _arrayFormatting($array, $row)
+   {
+        $vars = array();
+
+        foreach($array[1] as $key => $value)
+        {
+            $vars[$key] = $row[$value];
+        }
+
+        return string_replace($array[0], $vars);
+   }
     
     /*
     protected function _arrayFormatting($array, $row)
