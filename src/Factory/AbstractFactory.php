@@ -31,10 +31,13 @@ class AbstractFactory implements AbstractFactoryInterface
 
         if(!$flag)
         {
-            $implements = @class_implements($requestedName, true);
-            if(is_array($implements))
+            if(class_exists($requestedName))
             {
-                $flag = in_array('Com\LazyLoadInterface', $implements);
+                $implements = @class_implements($requestedName, true);
+                if(is_array($implements))
+                {
+                    $flag = in_array('Com\LazyLoadInterface', $implements);
+                }
             }
         }
 
