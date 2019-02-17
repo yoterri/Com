@@ -49,12 +49,6 @@ class Closure extends AbstractControl implements LazyLoadInterface
      */
     protected $dbNodeLabel = 'name';
 
-    /**
-     * @var string
-     */
-    protected $dbNodePrimary;
-
-
 
 
 
