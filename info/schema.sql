@@ -31,7 +31,7 @@ CREATE TABLE IF NOT EXISTS `priv_capability` (
   `id` BIGINT NOT NULL AUTO_INCREMENT,
   `name` CHAR(250) NOT NULL,
   `description` TEXT NULL,
-  `category_id` BIGINT NOT NULL DEFAULT 1 COMMENT 'ref to closure_caterory.id',
+  `category_id` BIGINT NOT NULL DEFAULT 1 COMMENT 'ref to closure_node.id',
   PRIMARY KEY (`id`),
   UNIQUE INDEX `name` (`name` ASC),
   INDEX `category_id` (`category_id` ASC))
@@ -145,9 +145,9 @@ DEFAULT CHARACTER SET = utf8;
 
 
 -- -----------------------------------------------------
--- Table `closure_category`
+-- Table `closure_node`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `closure_category` (
+CREATE TABLE IF NOT EXISTS `closure_node` (
   `id` BIGINT NOT NULL AUTO_INCREMENT,
   `name` CHAR(150) NOT NULL,
   `description` TEXT NULL,
@@ -179,9 +179,9 @@ DEFAULT CHARACTER SET = utf8;
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `closure_sort` (
   `group_id` BIGINT NOT NULL,
-  `category_id` BIGINT NOT NULL,
+  `node_id` BIGINT NOT NULL,
   `sort` BIGINT NOT NULL,
-  UNIQUE INDEX `unique` (`group_id` ASC, `category_id` ASC),
+  UNIQUE INDEX `unique` (`group_id` ASC, `node_id` ASC),
   INDEX `sort` (`sort` ASC))
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8;
@@ -228,11 +228,11 @@ COMMIT;
 
 
 -- -----------------------------------------------------
--- Data for table `closure_category`
+-- Data for table `closure_node`
 -- -----------------------------------------------------
 START TRANSACTION;
-INSERT INTO `closure_category` (`id`, `name`, `description`) VALUES (1, 'def', NULL);
-INSERT INTO `closure_category` (`id`, `name`, `description`) VALUES (2, 'Global permissions', NULL);
+INSERT INTO `closure_node` (`id`, `name`, `description`) VALUES (1, 'def', NULL);
+INSERT INTO `closure_node` (`id`, `name`, `description`) VALUES (2, 'Global permissions', NULL);
 
 COMMIT;
 
