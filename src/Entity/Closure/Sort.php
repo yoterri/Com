@@ -9,7 +9,7 @@ class Sort extends AbstractEntity implements LazyLoadInterface
 {
 	protected $properties = array(
         'group_id'
-        ,'category_id'
+        ,'node_id'
         ,'sort'
     );
 }
