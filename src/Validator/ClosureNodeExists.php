@@ -9,6 +9,12 @@ use Zend\Db\Sql\Select;
 class ClosureNodeExists extends AbstractValidator
 {
 
+	const RECORD_NOT_FOUND = 'record_not_found';
+
+	protected $messageTemplates = array(
+        self::RECORD_NOT_FOUND => 'Specified Value was not found in the database',
+    );
+
     /**
      * @var Com\Control\Closure
      */
@@ -69,6 +75,13 @@ class ClosureNodeExists extends AbstractValidator
         #echo "Total: $total<br>";
         #$dbNode->debugSql($select, 0);
 
-        return $total > 0;
+        $flag = $total > 0;
+
+        if(!$flag)
+        {
+			$this->error(self::RECORD_NOT_FOUND);
+        }
+
+        return $flag;
     }
 }
