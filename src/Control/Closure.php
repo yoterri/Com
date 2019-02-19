@@ -1125,6 +1125,15 @@ class Closure extends AbstractControl implements LazyLoadInterface
 
 
     /**
+     * @return int 
+     */
+    function getGroup()
+    {
+        return $this->groupId;
+    }
+
+
+    /**
      * 
      * @param AbstractDb|int|string $groupOrDb
      */
