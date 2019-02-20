@@ -9,9 +9,9 @@ use Zend\Db\Sql\Select;
 class ClosureNodeExists extends AbstractValidator
 {
 
-	const RECORD_NOT_FOUND = 'record_not_found';
+    const RECORD_NOT_FOUND = 'record_not_found';
 
-	protected $messageTemplates = array(
+    protected $messageTemplates = array(
         self::RECORD_NOT_FOUND => 'Specified Value was not found in the database',
     );
 
@@ -19,6 +19,9 @@ class ClosureNodeExists extends AbstractValidator
      * @var Com\Control\Closure
      */
     protected $cClosure;
+
+    protected $byPassValue = null;
+    protected $hasByPassValue = false;
 
 
     /**
@@ -37,6 +40,34 @@ class ClosureNodeExists extends AbstractValidator
         return $this->cClosure;
     }
 
+    /**
+     * @param mixed $valule
+     * @return ClosureNodeExists
+     */
+    function setByPassValue($value)
+    {
+        $this->byPassValue = $value;
+        $this->hasByPassValue = true;
+        return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    function getByPassValue()
+    {
+        return $this->byPassValue;
+    }
+
+    /**
+     * @return ClosureNodeExists
+     */
+    function removeByPassValue()
+    {
+        $this->hasByPassValue = false;
+        return $this;
+    }
+
 
     /**
      * @return bool
@@ -49,6 +80,27 @@ class ClosureNodeExists extends AbstractValidator
         {
             throw new \Exception('Closure control class was not provided');
         }
+
+        if($this->hasByPassValue)
+        {
+            if(is_array($this->byPassValue))
+            {
+                $flag = in_array($value, $this->byPassValue);
+                if($flag)
+                {
+                    return true;
+                }
+            }
+            else
+            {
+                $flag = ($value == $this->byPassValue);
+                if($flag)
+                {
+                    return true;
+                }
+            }
+        }
+        
 
         #
         $dbNode = $cClosure->getDbNode();
@@ -79,7 +131,7 @@ class ClosureNodeExists extends AbstractValidator
 
         if(!$flag)
         {
-			$this->error(self::RECORD_NOT_FOUND);
+            $this->error(self::RECORD_NOT_FOUND);
         }
 
         return $flag;
