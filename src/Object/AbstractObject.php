@@ -573,11 +573,11 @@ abstract class AbstractObject implements ContainerAwareInterface, LazyLoadInterf
             if(!empty($value))
             {
                 $exploded = explode('-', $value);
-                if(3 == count($exploded))
+                if(count($exploded) >= 3)
                 {
-                    $y = $exploded[0];
-                    $m = $exploded[1];
-                    $d = $exploded[2];
+                    $y = (int)$exploded[0];
+                    $m = (int)$exploded[1];
+                    $d = (int)$exploded[2];
 
                     if(checkdate($m, $d, $d))
                     {
@@ -612,7 +612,7 @@ abstract class AbstractObject implements ContainerAwareInterface, LazyLoadInterf
 
             if(!empty($value))
             {
-                $def = date('H:i:s', $value);
+                $def = date($format, $value);
             }
         }
 

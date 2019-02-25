@@ -592,6 +592,7 @@ class Closure extends AbstractControl implements LazyLoadInterface
         $nodeId = intval($nodeId);
 
         $dbClosure = $this->getDbClosure();
+        $dbGroup = $this->getDbGroup();
 
         $dbAdapter = $dbClosure->getDbAdapter();
 
@@ -614,6 +615,12 @@ class Closure extends AbstractControl implements LazyLoadInterface
                 ->in('id', $childs);
 
             $dbClosure->doDelete($where);
+
+            #
+            $childs = $this->_array_pluck($rowset, 'child_id');
+            $dbGroup->doDelete(function($where) use($childs) {
+                $where->in('node_id', $childs);
+            });
             
             if($deleteReference)
             {
