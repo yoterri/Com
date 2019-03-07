@@ -6,13 +6,20 @@ class StringUtils extends Zend\Stdlib\StringUtils
 {
 
 
-    static function convert_date($date, $from_format, $to_format)
+    /**
+     * @param string $date
+     * @param string $from_format
+     * @param string $to_format
+     * @param string $def
+     * @return string
+     */
+    static function convert_date($date, $from_format, $to_format, $def = '-')
     {
         $myDateTime = \DateTime::createFromFormat($from_format, $date);
 
         if(!$myDateTime)
         {
-            throw new \Exception("Unable to create date from formar.\n Check that the provided date '$date' is in the format '$from_format'\n ", 1);
+            return $def;
         }
         
         $newDate = $myDateTime->format($to_format);
