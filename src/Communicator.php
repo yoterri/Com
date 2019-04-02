@@ -9,25 +9,25 @@ class Communicator
      *
      * @var bool
      */
-    protected $_success = true;
+    protected $success = true;
 
     /**
      *
      * @var string
      */
-    protected $_successMessage = '';
+    protected $message = null;
 
     /**
      *
      * @var array
      */
-    protected $_data = array();
+    protected $data = array();
 
     /**
      *
      * @var array
      */
-    protected $_errors = array();
+    protected $errors = array();
 
 
     /**
@@ -37,66 +37,49 @@ class Communicator
      */
     function isSuccess()
     {
-        return $this->_success;
+        return $this->success;
+    }
+
+    /**
+     * @param string $message
+     * @return Communicator
+     */
+    function setMessage($message)
+    {
+        $this->message = $message;
+        return $this;
+    }
+
+
+    /**
+     * @return string
+     */
+    function getMessage()
+    {
+        return $this->message;
     }
     
 
     /**
      * @param string $message
      * @param array $data
-     * @return \Com\Communicator
+     * @return Communicator
      */
-    function setSuccess($message = null, array $data = null)
+    function setSuccess($message = null, array $data = array())
     {
         $this->clearErrors();
 
-        $this->_successMessage = $message;
-        $this->_success = true;
+        $this->success = true;
+        $this->setMessage($message);
+        $this->setData($data);
 
-        if($data)
-        {
-            $this->setData($data);
-        }
-
-        return $this;
-    }
-
-
-    /**
-     *
-     * @return string
-     */
-    function getSuccess()
-    {
-        return $this->_successMessage;
-    }
-
-
-    /**
-     *
-     * @return string
-     */
-    function getSuccessMessage()
-    {
-        return $this->_successMessage;
-    }
-
-
-    /**
-     *
-     * @return \Com\Communicator
-     */
-    function setNoSuccess()
-    {
-        $this->_successMessage = '';
-        $this->_success = false;
         return $this;
     }
 
 
     /**
      * @param \Exception $e
-     * return \Com\Communicator 
+     * return Communicator 
      */
     function setException(\Exception $e)
     {
@@ -108,25 +91,27 @@ class Communicator
      *
      * @param string $message
      * @param string $key
-     * @return \Com\Communicator
+     * @return Communicator
      */
     function addError($message, $key = null)
     {
-        $this->setNoSuccess();
+        $this->success = false;
+        $this->message = null;
+
         $message = (string)$message;
 
-        if(! empty($key))
+        if(!empty($key))
         {
             if(! isset($this->_errors[$key]))
             {
-                $this->_errors[$key] = array();
+                $this->errors[$key] = array();
             }
 
-            $this->_errors[$key][] = $message;
+            $this->errors[$key][] = $message;
         }
         else
         {
-            array_push($this->_errors, $message);
+            array_push($this->errors, $message);
         }
 
         return $this;
@@ -150,7 +135,7 @@ class Communicator
      */
     function getErrors()
     {
-        return $this->_errors;
+        return $this->errors;
     }
 
 
@@ -160,7 +145,7 @@ class Communicator
      */    
     function getError($key)
     {
-        return $this->_errors[$key];
+        return $this->errors[$key];
     }
 
 
@@ -175,7 +160,7 @@ class Communicator
         $errors = $this->getErrors();
         foreach($errors as $key => $item)
         {
-            if(is_numeric($key) && ! is_array($item))
+            if(is_numeric($key) && !is_array($item))
             {
                 $r[] = $item;
             }
@@ -185,12 +170,15 @@ class Communicator
     }
 
 
+    /**
+     * @return array
+     */
     function getFieldErrors($fieldName = null)
     {
         $r = array();
         $errors = $this->getErrors();
 
-        if(! empty($fieldName))
+        if(!empty($fieldName))
         {
             if(isset($errors[$fieldName]))
             {
@@ -214,11 +202,11 @@ class Communicator
 
     /**
      *
-     * @return \Com\Communicator
+     * @return Communicator
      */
     function clearErrors()
     {
-        $this->_errors = array();
+        $this->errors = array();
         return $this;
     }
 
@@ -233,27 +221,27 @@ class Communicator
         if(!empty($key))
         {
             $r = $default;
-            if(isset($this->_data[$key]))
+            if(isset($this->data[$key]))
             {
-                $r = $this->_data[$key];
+                $r = $this->data[$key];
             }
             
             return $r;
         }
         else
         {
-            return $this->_data;
+            return $this->data;
         }
     }
 
 
     /**
      *
-     * @return \Com\Communicator
+     * @return Communicator
      */
     function clearData()
     {
-        $this->_data = array();
+        $this->data = array();
         return $this;
     }
 
@@ -261,11 +249,11 @@ class Communicator
     /**
      *
      * @param array $data
-     * @return \Com\Communicator
+     * @return Communicator
      */
     function setData(array $data)
     {
-        $this->_data = $data;
+        $this->data = $data;
         return $this;
     }
 
@@ -273,7 +261,7 @@ class Communicator
     /**
      *
      * @param array $data
-     * @return \Com\Communicator
+     * @return Communicator
      */
     function mergeData(array $data)
     {
@@ -287,7 +275,7 @@ class Communicator
      *
      * @param string $key
      * @param mixed $value
-     * @return \Com\Communicator
+     * @return Communicator
      */
     function addData($key , $value)
     {
@@ -305,7 +293,7 @@ class Communicator
      */
     function toJson()
     {
-        return Zend\Json\Encoder::encode($this->toArray());
+        return json_encode($this->toArray());
     }
 
 
@@ -315,7 +303,7 @@ class Communicator
      */
     function __set($key, $value)
     {
-        $this->_data[$key] = $value;
+        $this->data[$key] = $value;
     }
 
 
@@ -326,9 +314,10 @@ class Communicator
     function __get($key)
     {
         $r = null;
-        if(isset($this->_data[$key]))
+
+        if(isset($this->data[$key]))
         {
-            $r = $this->_data[$key];
+            $r = $this->data[$key];
         }
 
         return $r;
@@ -341,7 +330,7 @@ class Communicator
      */
     function __isset($key)
     {
-        return isset($this->_data[$key]);
+        return isset($this->data[$key]);
     }
 
 
@@ -350,9 +339,9 @@ class Communicator
      */
     function __unset($key)
     {
-        if(isset($this->_data[$key]))
+        if(isset($this->data[$key]))
         {
-            unset($this->_data[$key]);
+            unset($this->data[$key]);
         }
     }
 
@@ -365,7 +354,7 @@ class Communicator
     {
         return array(
             'success' => $this->isSuccess(),
-            'message' => $this->getSuccessMessage(),
+            'message' => $this->getMessage(),
             'data' => $this->getData(),
             'errors' => $this->getErrors()
         );

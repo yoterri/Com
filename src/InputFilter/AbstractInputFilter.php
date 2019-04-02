@@ -1,10 +1,12 @@
 <?php
 
 namespace Com\InputFilter;
-use Interop\Container\ContainerInterface;
+
 use Com\ContainerAwareInterface;
-use Zend\InputFilter\InputFilter;
 use Com\LazyLoadInterface;
+
+use Interop\Container\ContainerInterface;
+use Zend\InputFilter\InputFilter;
 use Zend\EventManager\EventManagerAwareInterface;
 use Zend\EventManager\Event;
 use Zend\EventManager\EventManager;
@@ -76,6 +78,27 @@ abstract class AbstractInputFilter extends InputFilter implements LazyLoadInterf
 
 
     /**
+     * Translate a message using the given text domain and locale
+     *
+     * @param string $message
+     * @param string $textDomain
+     * @param string $locale
+     * @return string
+     */
+    function _($message, $textDomain = 'default', $locale = null)
+    {
+        $sm = $this->getContainer();
+
+        if($sm->has('translator'))
+        {
+            $message = $sm->get('translator')->translate($message, $textDomain, $locale);
+        }
+
+        return $message;
+    }
+
+
+    /**
      * @param string $key
      * @param string $value
      */
@@ -136,7 +159,7 @@ abstract class AbstractInputFilter extends InputFilter implements LazyLoadInterf
 
         #
         $eventParams = array('data' => $data, 'params' => $this->params);
-        $event = $this->_triggerFilterEvent($eventParams, 'set.data.pre');
+        $event = $this->_triggerFilterEvent($eventParams, 'pre.set.data');
         $data = $event->getParam('data');
 
         #
@@ -147,7 +170,7 @@ abstract class AbstractInputFilter extends InputFilter implements LazyLoadInterf
 
         #
         $eventParams = array('data' => $data, 'params' => $this->params);
-        $event = $this->_triggerFilterEvent($eventParams, 'set.data.pos');
+        $event = $this->_triggerFilterEvent($eventParams, 'post.set.data');
 
         return $this;
     }
@@ -159,33 +182,12 @@ abstract class AbstractInputFilter extends InputFilter implements LazyLoadInterf
     }
 
 
-    /**
-     * Translate a message using the given text domain and locale
-     *
-     * @param string $message
-     * @param string $textDomain
-     * @param string $locale
-     * @return string
-     */
-    function _($message, $textDomain = 'default', $locale = null)
-    {
-        $sm = $this->getContainer();
-
-        if($sm->has('translator'))
-        {
-            $message = $sm->get('translator')->translate($message, $textDomain, $locale);
-        }
-
-        return $message;
-    }
-
-
     function build()
     {
         $filters = $this->getFilters();
 
         $eventParams = array('filters' => $filters, 'params' => $this->params);
-        $event = $this->_triggerFilterEvent($eventParams, 'input.filters');
+        $event = $this->_triggerFilterEvent($eventParams, 'pre.build');
         if($event->propagationIsStopped())
         {
             return $this;
@@ -205,7 +207,7 @@ abstract class AbstractInputFilter extends InputFilter implements LazyLoadInterf
 
         #
         $eventParams = array('params' => $this->params);
-        $event = $this->_triggerFilterEvent($eventParams, 'input.built');
+        $event = $this->_triggerFilterEvent($eventParams, 'post.build');
         
         return $this;
     }
@@ -239,7 +241,7 @@ abstract class AbstractInputFilter extends InputFilter implements LazyLoadInterf
 
         #
         $eventParams = array('values' => $values, 'only_provided' => $onlyProvided);
-        $event = $this->_triggerFilterEvent($eventParams, 'input.values');
+        $event = $this->_triggerFilterEvent($eventParams, 'pre.get.values');
         if($event->propagationIsStopped())
         {
             return $values;
@@ -267,6 +269,31 @@ abstract class AbstractInputFilter extends InputFilter implements LazyLoadInterf
         return $values;
     }
 
+
+    /**
+     * Is the data set valid?
+     *
+     * @param  mixed|null $context
+     * @throws Exception\RuntimeException
+     * @return bool
+     */
+    public function isValid($context = null)
+    {
+        #
+        $eventParams = array('content' => $context);
+        $event = $this->_triggerFilterEvent($eventParams, 'pre.validate');
+        $context = $event->getParam('context');
+
+        #
+        $flag = parent::isValid($context);
+
+        $eventParams = array('content' => $context, 'flag' => $flag);
+        $event = $this->_triggerFilterEvent($eventParams, 'post.validate');
+        $flag = $event->getParam('flag');
+
+        #
+        return $flag;
+    }
 
 
     protected function _triggerFilterEvent(array $eventParams, $eventName)

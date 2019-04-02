@@ -5,20 +5,16 @@ namespace Com\Db;
 /**
  * Events: 
  * db.prefixing
- * db.before_insert
- * db.after_insert
- * db.before_update 
- * db.after_update 
- * db.before_delete
- * db.after_delete
- * 
+ * pre.insert
+ * post.insert
+ * pre.update
+ * post.update
+ * pre.delete
+ * post.delete
  */
 
-use Com;
 use Zend;
 use Zend\Db\TableGateway\TableGateway;
-use Com\Entity\Record;
-
 use Zend\Db\Adapter\Adapter;
 use Zend\EventManager\EventManager;
 use Zend\EventManager\Event;
@@ -27,13 +23,15 @@ use Zend\Db\Adapter\AdapterAwareInterface;
 use Zend\EventManager\EventManagerAwareInterface;
 use Interop\Container\ContainerInterface;
 use Zend\Db\Sql\Where;
-use Com\ContainerAwareInterface;
 use Zend\Paginator\Adapter\DbSelect;
 use Zend\Paginator\Paginator;
+
+use Com\Entity\Record;
+use Com\ContainerAwareInterface;
 use Com\LazyLoadInterface;
 
-class AbstractDb extends TableGateway implements AdapterAwareInterface, 
-    EventManagerAwareInterface, ContainerAwareInterface, LazyLoadInterface
+
+class AbstractDb extends TableGateway implements AdapterAwareInterface, EventManagerAwareInterface, ContainerAwareInterface, LazyLoadInterface
 {
     
     /**
@@ -91,18 +89,6 @@ class AbstractDb extends TableGateway implements AdapterAwareInterface,
      */
     protected $enableDebug = false;
 
-    /**
-     *
-     * @var int
-     */
-    protected $pageNumber = 1;
-
-    /**
-     *
-     * @var int
-     */
-    protected $recordsPerPage = 20;
-
 
     /**
      *
@@ -145,55 +131,6 @@ class AbstractDb extends TableGateway implements AdapterAwareInterface,
 
 
     /**
-     * @param int $page
-     * @param int $limit
-     */
-    function setPageLimit($page, $limit)
-    {
-        if(!$page || $page < 0)
-        {
-            $page = 1;
-        }
-
-
-        if(!$limit || $limit < 5)
-        {
-            $limit = 5;
-        }
-
-        if($limit > 100)
-        {
-            $limit = 100;
-        }
-
-        $this->pageNumber = $page;
-        $this->recordsPerPage = $limit;
-        return $this;
-    }
-
-
-    /**
-     *
-     */
-    protected function _getPaginator($select)
-    {
-        $sm = $this->getContainer();
-
-        $dbAdapter = $sm->get('adapter');
-
-        $pAdpater = new DbSelect($select, $dbAdapter);
-
-        $paginator = new Paginator($pAdpater);
-        $paginator->setCurrentPageNumber($this->pageNumber);
-        $paginator->setItemCountPerPage($this->recordsPerPage);
-
-        return $paginator;
-    }
-    
-    
-    
-    
-    /**
      * @param ContainerInterface $container
      */
     function setContainer(ContainerInterface $container)
@@ -213,9 +150,9 @@ class AbstractDb extends TableGateway implements AdapterAwareInterface,
 
     /**
      * @param bool $val
-     * @return bool
+     * @return AbstractDb
      */
-    function enableDebug($val)
+    function setEnableDebug($val)
     {
         $this->enableDebug = (bool)$val;
         return $this;
@@ -225,6 +162,7 @@ class AbstractDb extends TableGateway implements AdapterAwareInterface,
     
     /**
      * @param $eventManager EventManagerInterface
+     * @return AbstractDb
      */
     function setEventManager(EventManagerInterface $eventManager)
     {
@@ -379,7 +317,7 @@ class AbstractDb extends TableGateway implements AdapterAwareInterface,
     function doInsert(array $data)
     {
         $eventParams = ['data' => $data];
-        $event = new Event('db.before_insert', $this, $eventParams);
+        $event = new Event('pre.insert', $this, $eventParams);
         
         $this->getEventManager()->triggerEvent($event);
         if(!$event->propagationIsStopped())
@@ -407,7 +345,7 @@ class AbstractDb extends TableGateway implements AdapterAwareInterface,
                 'result' => $result,
                 'last_insert_value' => $result,
             ];
-            $event = new Event('db.after_insert', $this, $eventParams);
+            $event = new Event('post.insert', $this, $eventParams);
             
             $this->getEventManager()->triggerEvent($event);
         }
@@ -429,7 +367,7 @@ class AbstractDb extends TableGateway implements AdapterAwareInterface,
     function doUpdate(array $data, $where)
     {
         $eventParams = ['data' => $data, 'where' => $where];
-        $event = new Event('db.before_update', $this, $eventParams);
+        $event = new Event('pre.update', $this, $eventParams);
         
         $this->getEventManager()->triggerEvent($event);
         if(!$event->propagationIsStopped())
@@ -460,7 +398,7 @@ class AbstractDb extends TableGateway implements AdapterAwareInterface,
                 'result' => $result,
                 'affected_rows' => $result,
             ];
-            $event = new Event('db.after_update', $this, $eventParams);
+            $event = new Event('post.update', $this, $eventParams);
             
             $this->getEventManager()->triggerEvent($event);
         }
@@ -481,7 +419,7 @@ class AbstractDb extends TableGateway implements AdapterAwareInterface,
     function doDelete($where)
     {
         $eventParams = ['where' => $where];
-        $event = new Event('db.before_delete', $this, $eventParams);
+        $event = new Event('pre.delete', $this, $eventParams);
         
         $this->getEventManager()->triggerEvent($event);
         if(!$event->propagationIsStopped())
@@ -510,7 +448,7 @@ class AbstractDb extends TableGateway implements AdapterAwareInterface,
                 'result' => $result,
                 'affected_rows' => $result,
             ];
-            $event = new Event('db.after_delete', $this, $eventParams);
+            $event = new Event('post.delete', $this, $eventParams);
             
             $this->getEventManager()->triggerEvent($event);
         }

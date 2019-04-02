@@ -24,7 +24,7 @@ class AbstractFactory implements AbstractFactoryInterface
         }
 
         $sub = substr($requestedName, 0, 4);
-        if(('Com\\' == $sub) || ('App\\' == $sub))
+        if(('Com\\' == $sub))
         {
             $flag = true;
         }

@@ -7,16 +7,18 @@ namespace Com\Entity;
 use Zend;
 use Com\LazyLoadInterface;
 use Com\Db\AbstractDb;
+use Com\Object\AbstractObject;
+
 use Zend\Db\Sql\Where;
 use Zend\Db\Sql\Expression;
-use Com\Object\AbstractObject;
+
 
 
 abstract class AbstractEntity extends AbstractObject implements LazyLoadInterface
 {
 
     /**
-     * @example \Com\Db\News
+     * @example \User\Db\News
      * @var string
      */
     protected $dbClassName = null;

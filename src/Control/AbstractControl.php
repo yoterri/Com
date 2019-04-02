@@ -2,7 +2,6 @@
 
 namespace Com\Control;
 use Interop\Container\ContainerInterface;
-use Com\ContainerAwareInterface;
 use Zend\InputFilter\InputFilter;
 use Zend\Db\Adapter\AdapterAwareInterface;
 use Zend\Db\Sql\Where;
@@ -11,19 +10,15 @@ use Zend\Db\Adapter\Adapter;
 use Zend\EventManager\EventManager;
 use Zend\EventManager\Event;
 use Zend\EventManager\EventManagerInterface;
-use Com\LazyLoadInterface;
-use Com\InputFilter\AbstractInputFilter;
 use Zend\Stdlib\Parameters;
 
-abstract class AbstractControl implements 
-    ContainerAwareInterface, AdapterAwareInterface, EventManagerAwareInterface, LazyLoadInterface
-{
+use Com\Communicator;
+use Com\ContainerAwareInterface;
+use Com\LazyLoadInterface;
+use Com\InputFilter\AbstractInputFilter;
 
-    /**
-     *
-     * @var Com\Communicator
-     */
-    protected $communicator;
+abstract class AbstractControl implements ContainerAwareInterface, AdapterAwareInterface, EventManagerAwareInterface, LazyLoadInterface
+{
 
     /**
      * @var ContainerInterface
@@ -145,136 +140,278 @@ abstract class AbstractControl implements
 
 
     /**
-     *
-     * @return boolean
-     */
-    function isSuccess()
-    {
-        return $this->getCommunicator()->isSuccess();
-    }
-
-
-    /**
-     *
      * @return \Com\Communicator
      */
     function getCommunicator()
     {
-        if(! $this->communicator instanceof \Com\Communicator)
-            $this->resetCommunicator();
-        
-        return $this->communicator;
+        return new \Com\Communicator();
     }
 
-
-    /**
-     *
-     * @return \Com\Control\AbstractControl
-     */
-    function resetCommunicator()
-    {
-        $this->communicator = new \Com\Communicator();
-        
-        return $this;
-    }
-
-
-    /**
-     * @param strign $message
-     * @param array $data
-     */
-    function setSuccess($message = null, array $data = array())
-    {
-        $com = $this->getCommunicator();
-        $com->setSuccess($message);
-        $com->setData($data);
-
-        return $this;
-    }
-
-
-    function setException(\Exception $e)
-    {
-        $a = defined('APP_ENV');
-        $b = defined('APP_DEVELOPMENT');
-        
-        if(($a && $b) && (APP_ENV == APP_DEVELOPMENT))
-        {
-            $message = "<pre>$e</pre>";
-        }
-        else
-        {
-            $message = $e->getMessage();
-        }
-        
-        $this->getCommunicator()->addError($message);
-        
-        return $this;
-    }
 
     /**
      * @param AbstractInputFilter $filter
+     * @param Communicator $com
      * @return AbstractControl
      */
-    function setFilterError(AbstractInputFilter $filter)
+    function setFilterError(AbstractInputFilter $filter, Communicator $com = null)
     {
         $messages = $filter->getMessages();
-        $com = $this->getCommunicator();
 
+        if(!$com)
+        {
+            $com = $this->getCommunicator();
+        }
+        
         foreach($messages as $key => $item)
         {
             $message = current($item);
             $com->addError($message, $key);
         }
 
-        return $this;
-    }
-
-    /**
-     * @return Where
-     */
-    function getWhere()
-    {
-        return new Where();
+        return $com;
     }
 
 
     /**
-     * @param Parameters|array $params
-     * @param array $fields
-     * @param bool $removeZeros
+     * @param array | object $data
+     * @return Parameters
      */
-    function removeIfEmpty($params, array $fields, $removeZeros = false)
+    function toParams($data)
     {
-        $isParam = ($params instanceof Parameters);
-        foreach($fields as $field)
+        if(is_object($data))
         {
-            $isset = false;
-            if($isParam)
+            if(method_exists($data, 'toArray'))
             {
-                if(isset($params->field))
+                $data = $data->toArray();
+            }
+            elseif(method_exists($data, 'getArrayCopy'))
+            {
+                $data = $data->getArrayCopy();
+            }
+        }
+
+        #
+        if(is_array($data))
+        {
+            $params = new Parameters($data);
+        }
+        elseif($data instanceof Parameters)
+        {
+            $params = $data;
+        }
+        else
+        {
+            throw new \Exception('Invalid parameter provided');
+        }
+        
+        return $params;
+    }
+
+
+    /**
+     * @param Parameters $params
+     * @param string $inputFilterClassName
+     * @param string $dbClassName
+     *
+     * @return Com\Communicator
+     */
+    protected function _save(Parameters $params, $inputFilterClassName, $dbClassName)
+    {
+        $sm = $this->getContainer();
+        $com = new Communicator();
+
+        try
+        {
+            $inputFilter = $sm->get($inputFilterClassName);
+            $inputFilter->build();
+
+            $inputFilter->setData($params->toArray());
+
+            if($inputFilter->isValid())
+            {
+                $db = $sm->get($dbClassName);
+
+                $dbKeyEventName = strtolower(str_replace('\\', '.', $dbClassName));
+                if($params->id)
                 {
-                    $value = $params->field;
-                    if(('' === $value) || is_null($value) || ($removeZeros && 0 == $value))
+                    $id = $params->id;
+
+                    #
+                    $entity = $db->findByPrimaryKey($id);
+                    if($entity)
                     {
-                        unset($params->$field);
+                        $values = $inputFilter->getValues(true);
+                        $entity->populate($values);
+
+                        #
+                        $eventParams = array(
+                            'entity' => $entity,
+                            'params' => $params,
+                            'values' => $values,
+                        );
+                        $event = $this->_triggerEvent("pre.update.{$dbKeyEventName}", $eventParams);
+                        if(!$event->propagationIsStopped())
+                        {
+                            $entity = $event->getParam('entity');
+
+                            #
+                            $in = $entity->toArray();
+
+                            #
+                            $db->doUpdate($in, array('id' => $id));
+
+                            #
+                            $com->setSuccess('Successfully updated.', array('entity' => $entity));
+                            $eventParams = array(
+                                'communicator' => $com,
+                                'entity' => $entity,
+                                'params' => $params,
+                                'values' => $values,
+                            );
+                            $event = $this->_triggerEvent("post.update.{$dbKeyEventName}", $eventParams);
+                        }
+                        else
+                        {
+                            $com->addError('Update was cancelled.');
+                        }
+                    }
+                    else
+                    {
+                        $com->addError('Record not found.');
+                    }
+                }
+                else
+                {
+                    $entity = $db->getEntity();
+                    $values = $inputFilter->getValues();
+
+                    $entity->exchange($values);
+
+                    #
+                    $eventParams = array(
+                        'entity' => $entity,
+                        'params' => $params,
+                        'values' => $values,
+                    );
+                    $event = $this->_triggerEvent("pre.insert.{$dbKeyEventName}", $eventParams);
+                    $entity = $event->getParam('entity');
+
+                    if(!$event->propagationIsStopped())
+                    {
+                        #
+                        $in = $entity->toArray();
+
+                        $id = $db->doInsert($in);
+
+                        $entity->id = $id;
+
+                        $com->setSuccess('Successfully added.', array('entity' => $entity));
+
+                        #
+                        $eventParams = array(
+                            'communicator' => $com,
+                            'entity' => $entity,
+                            'params' => $params,
+                            'values' => $values,
+                        );
+                        $event = $this->_triggerEvent("post.insert.{$dbKeyEventName}", $eventParams);
+                    }
+                    else
+                    {
+                        $com->addError('Adding record was cancelled.');
                     }
                 }
             }
             else
             {
-                if(isset($params[$field]))
-                {
-                    $value = $params[$field];
-                    if(('' === $value) || is_null($value) || ($removeZeros && 0 == $value))
-                    {
-                        unset($params[$field]);
-                    }
-                }
+                $this->setFilterError($inputFilter, $com);
             }
         }
+        catch(\Exception $ex)
+        {
+            $com->setException($ex);
+        }
 
-        return $params;
+        return $com;
     }
 
+
+    /**
+     * @param int $id
+     * @param string $dbClassName
+     *
+     * @return Com\Communicator
+     */
+    protected function _delete($id, $dbClassName)
+    {
+        $sm = $this->getContainer();
+        $com = new Communicator();
+
+        try
+        {
+            $dbKeyEventName = strtolower(str_replace('\\', '.', $dbClassName));
+
+            #
+            $db = $sm->get($dbClassName);
+            $entity = $db->findByPrimaryKey($id);
+            if($entity)
+            {
+                $defMessage = 'Successfully deleted.';
+
+                #
+                $eventParams = array(
+                    'entity' => $entity,
+                    'message' => $defMessage,
+                );
+                $event = $this->_triggerEvent("pre.delete.{$dbKeyEventName}", $eventParams);
+                $message = $event->getParam('message');
+
+                if(!$event->propagationIsStopped())
+                {
+                    if(empty($message))
+                    {
+                        $message = $defMessage;
+                    }
+
+                    $db->doDelete(array('id' => $entity->id));
+
+                    $com->setSuccess($message, array('entity' => $entity));
+
+                    #
+                    $eventParams = array(
+                        'entity' => $entity,
+                        'communicator' => $com,
+                    );
+                    $event = $this->_triggerEvent("post.delete.{$dbKeyEventName}", $eventParams);
+                }
+                else
+                {
+                    if(empty($message))
+                    {
+                        $message = 'Deleting record was cancelled.';
+                    }
+
+                    $com->addError($message);
+                }
+            }
+            else
+            {
+                $com->addError('Record not found.');
+            }
+        }
+        catch(\Exception $ex)
+        {
+            $com->setException($ex);
+        }
+
+        return $com;
+    }
+
+
+    private function _triggerEvent($eventName, $eventParams)
+    {
+        $event = new Event($eventName, $this, $eventParams);
+        $this->getEventManager()->triggerEvent($event);
+        return $event;
+    }
 }

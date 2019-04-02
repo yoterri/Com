@@ -2,58 +2,43 @@
 
 namespace Com\Form;
 
-use Com\Communicator;
-use Com\Control\AbstractControl;
-use Zend\Form\Form;
 use Com\LazyLoadInterface;
+use Com\ContainerAwareInterface;
+
+use Zend\Form\Form;
 use Zend\EventManager\Event;
 use Zend\EventManager\EventManager;
 use Zend\EventManager\EventManagerInterface;
-use Com\ContainerAwareInterface;
 use Zend\EventManager\EventManagerAwareInterface;
 use Interop\Container\ContainerInterface;
 
-abstract class AbstractForm extends Form  implements LazyLoadInterface, EventManagerAwareInterface, ContainerAwareInterface
+abstract class AbstractForm extends Form implements LazyLoadInterface, EventManagerAwareInterface, ContainerAwareInterface
 {
     
     /**
      * @var ContainerInterface
      */
     protected $container;
-
-    /**
-     * @var string
-     */
-    protected $version;
-    
     
     /**
      * @var EventManagerInterface
      */
     protected $eventManager;
-
-
-    /**
-     * @param string $versionName
-     */
-    function setVersion($versionName)
-    {
-        $this->version = $versionName;
-        return $this;
-    }
-
-
-    /**
-     * @return string
-     */
-    function getVersion()
-    {
-        return $this->version;
-    }
     
     
-    function reset($data, array $except = [])
+    /**
+     * @param array $data
+     * @param array $except
+     * @return AbstractForm
+     */
+    function reset($data = null, array $except = array())
     {
+        if(empty($data))
+        {
+            $filter = $this->getInputFilter();
+            $data = $filter->getValues();
+        }
+
         $newData = [];
         foreach($data as $key => $value)
         {
@@ -66,9 +51,16 @@ abstract class AbstractForm extends Form  implements LazyLoadInterface, EventMan
         }
         
         $this->setData($newData);
+
+        #
+        return $this;
     }
 
 
+    /**
+     * @param array $data
+     * @return AbstractForm
+     */
     function setData($data)
     {
         if(is_object($data) && method_exists($data, 'toArray'))
@@ -99,35 +91,6 @@ abstract class AbstractForm extends Form  implements LazyLoadInterface, EventMan
     {
         return $this->container;
     }
-    
-    
-    function setCommunicator(Communicator $com)
-    {
-        if(!$com->isSuccess())
-        {
-            $err = $com->getGlobalErrors();
-            if($err)
-            {
-                $global = ['global' => []];
-                foreach($err as $msg)
-                {
-                    $global['global'][] = $msg;
-                }
-                
-                $this->setMessages($global);
-            }
-            else
-            {
-                $err = $com->getErrors();
-                if($err)
-                {
-                    $this->setMessages($err);
-                }
-            }
-        }
-        
-        return $this;
-    }
        
     
     /**
@@ -155,38 +118,22 @@ abstract class AbstractForm extends Form  implements LazyLoadInterface, EventMan
         {
             $this->setEventManager(new EventManager());
         }
-
+        
         return $this->eventManager;
     }
     
     
-    
-    protected function _triggerFieldsEvent(array $fields)
-    {
-        $eventParams = array('fields' => $fields);
-        $event = new Event('form.fields', $this, $eventParams);
-        
-        $this->getEventManager()->triggerEvent($event);
-        
-        return $event;
-    }
-
-
-    protected function _triggerBuildEvent()
-    {
-        $event = new Event('form.built', $this);
-        $this->getEventManager()->triggerEvent($event);
-        
-        return $event;
-    } 
-    
-    
+    /**
+     * @return AbstractForm
+     */
     function build()
     {
         $fields = $this->getFields();
         
         #
-        $event = $this->_triggerFieldsEvent($fields);
+        $eventParams = array('fields' => $fields);
+        $event = new Event('pre.build', $this, $eventParams);
+        $this->getEventManager()->triggerEvent($event);
         if($event->propagationIsStopped())
         {
             return $this;
@@ -200,31 +147,17 @@ abstract class AbstractForm extends Form  implements LazyLoadInterface, EventMan
         }
 
         #
-        $event = $this->_triggerBuildEvent();
+        $event = new Event('post.build', $this);
+        $this->getEventManager()->triggerEvent($event);
         
-
         #
-        $version = $this->getVersion();
-        if($version)
-        {
-            $method = "{$version}Version";
-            if(method_exists($this, $method))
-            {
-                $callback = array($this, $method);
-                $result = call_user_func($callback);
-                if(is_array($result))
-                {
-                    $this->removeFields($result);
-                }
-            }
-        }
-
         return $this;
     }
 
 
     /**
      * @param array $fields
+     * @return AbstractForm
      */
     function removeFields(array $fields)
     {

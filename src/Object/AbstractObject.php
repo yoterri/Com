@@ -111,7 +111,7 @@ abstract class AbstractObject implements ContainerAwareInterface, LazyLoadInterf
 
     /**
      *
-     * @return \Com\Control\AbstractControl
+     * @return \Com\Communicator
      */
     function resetCommunicator()
     {
@@ -160,7 +160,7 @@ abstract class AbstractObject implements ContainerAwareInterface, LazyLoadInterf
     /**
      *
      * @param array|Traversable|AbstractOptions $data
-     * @return \Com\Entity\AbstractEntity
+     * @return AbstractObject
      */
     function setFromArray($data)
     {
@@ -172,7 +172,7 @@ abstract class AbstractObject implements ContainerAwareInterface, LazyLoadInterf
     /**
      *
      * @param array|Traversable|AbstractOptions $data            
-     * @return \Com\Entity\AbstractEntity
+     * @return AbstractObject
      */
     function populate($data)
     {
@@ -214,7 +214,7 @@ abstract class AbstractObject implements ContainerAwareInterface, LazyLoadInterf
 
     /**
      * @param array|Traversable|AbstractOptions $data            
-     * @return \Com\Entity\AbstractEntity
+     * @return AbstractObject
      */
     function exchange($data)
     {
@@ -224,7 +224,7 @@ abstract class AbstractObject implements ContainerAwareInterface, LazyLoadInterf
 
     /**
      * @param array|Traversable|AbstractOptions $data            
-     * @return \Com\Entity\AbstractEntity
+     * @return AbstractObject
      */
     function exchangeArray($data)
     {
@@ -352,7 +352,7 @@ abstract class AbstractObject implements ContainerAwareInterface, LazyLoadInterf
      */
     function toJson()
     {
-        return Zend\Json\Encoder::encode($this->toArray());
+        return json_encode($this->toArray());
     }
     
 
