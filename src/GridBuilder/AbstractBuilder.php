@@ -2,7 +2,7 @@
 
 namespace Com\GridBuilder;
 
-use Com\DataGrid\TinyGrid;
+use Com\Component\TinyGrid\Grid;
 use Com\LazyLoadInterface;
 use Com\ContainerAwareInterface;
 use Interop\Container\ContainerInterface;
@@ -18,7 +18,7 @@ abstract class AbstractBuilder implements ContainerAwareInterface, LazyLoadInter
     protected $container;
 
     /**
-     * @var TinyGrid
+     * @var Grid
      */
     protected $tinyGrid = false;
 
@@ -71,7 +71,7 @@ abstract class AbstractBuilder implements ContainerAwareInterface, LazyLoadInter
 
     protected function _buildGrid()
     {
-        $this->tinyGrid = new TinyGrid();
+        $this->tinyGrid = new Grid();
 
         #
         $escaper = new Escaper();
