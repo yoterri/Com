@@ -35,6 +35,11 @@ abstract class AbstractControl implements ContainerAwareInterface, AdapterAwareI
      */
     protected $adapter;
 
+    /**
+     * @var Com\Communicator
+     */
+    protected $communicator;
+
 
     /**
      * @param ContainerInterface $container
@@ -140,11 +145,16 @@ abstract class AbstractControl implements ContainerAwareInterface, AdapterAwareI
 
 
     /**
-     * @return \Com\Communicator
+     * @return Communicator
      */
     function getCommunicator()
     {
-        return new \Com\Communicator();
+        if(!$this->communicator)
+        {
+            $this->communicator = new Communicator();
+        }
+
+        return $this->communicator;
     }
 
 
@@ -213,12 +223,12 @@ abstract class AbstractControl implements ContainerAwareInterface, AdapterAwareI
      * @param string $inputFilterClassName
      * @param string $dbClassName
      *
-     * @return Com\Communicator
+     * @return bool
      */
     protected function _save(Parameters $params, $inputFilterClassName, $dbClassName)
     {
         $sm = $this->getContainer();
-        $com = new Communicator();
+        $com = $this->getCommunicator();
 
         try
         {
@@ -332,7 +342,7 @@ abstract class AbstractControl implements ContainerAwareInterface, AdapterAwareI
             $com->setException($ex);
         }
 
-        return $com;
+        return $com->isSuccess();
     }
 
 
@@ -340,12 +350,12 @@ abstract class AbstractControl implements ContainerAwareInterface, AdapterAwareI
      * @param int $id
      * @param string $dbClassName
      *
-     * @return Com\Communicator
+     * @return bool
      */
     protected function _delete($id, $dbClassName)
     {
         $sm = $this->getContainer();
-        $com = new Communicator();
+        $com = $this->getCommunicator();
 
         try
         {
@@ -404,7 +414,7 @@ abstract class AbstractControl implements ContainerAwareInterface, AdapterAwareI
             $com->setException($ex);
         }
 
-        return $com;
+        return $com->isSuccess();
     }
 
 
