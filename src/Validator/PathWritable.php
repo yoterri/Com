@@ -45,19 +45,19 @@ class PathWritable extends AbstractValidator
         if(!$dir)
         {
             $this->error(self::NOT_SPECIFIED);
-            return fale;
+            return false;
         }
 
         if(!file_exists($dir))
         {
             $this->error(self::DOES_NOT_EXISTS);
-            return fale;
+            return false;
         }
 
         if(!is_writable($dir))
         {
             $this->error(self::NOT_WRITABLE);
-            return fale;
+            return false;
         }
 
         return true;
