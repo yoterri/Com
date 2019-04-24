@@ -33,7 +33,7 @@ class AbstractFactory2 implements AbstractFactoryInterface
             $implements = class_implements($requestedName, true);
             if(is_array($implements))
             {
-                $flag = in_array('Com\LazyLoadInterface', $implements);
+                $flag = in_array('Com\Interfaces\LazyLoadInterface', $implements);
             }
         }
 
@@ -48,7 +48,7 @@ class AbstractFactory2 implements AbstractFactoryInterface
 
         $implements = class_implements($requestedName, true);
                 
-        if(in_array('Com\ContainerAwareInterface', $implements, true))
+        if(in_array('Com\Interfaces\ContainerAwareInterface', $implements, true))
         {
             $instance->setContainer($container);
         }

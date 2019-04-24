@@ -2,7 +2,7 @@
 
 namespace Com;
 use Zend;
-use Com\LazyLoadInterface;
+use Com\Interfaces\LazyLoadInterface;
 
 class DsFormatter implements LazyLoadInterface
 {

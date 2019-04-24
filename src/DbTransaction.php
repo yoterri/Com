@@ -5,7 +5,7 @@ use Interop\Container\ContainerInterface;
 use Zend\Db\Adapter\AdapterAwareInterface;
 use Zend\Db\Adapter\Adapter;
 
-use Com\LazyLoadInterface;
+use Com\Interfaces\LazyLoadInterface;
 
 class DbTransaction implements AdapterAwareInterface, LazyLoadInterface
 {
