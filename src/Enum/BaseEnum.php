@@ -3,7 +3,7 @@
 namespace Com\Enum;
 
 use Zend;
-use Com\LazyLoadInterface;
+use Com\Interfaces\LazyLoadInterface;
 
 
 class BaseEnum implements LazyLoadInterface

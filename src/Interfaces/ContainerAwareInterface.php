@@ -1,6 +1,7 @@
 <?php
 
-namespace Com;
+namespace Com\Interfaces;
+
 use Interop\Container\ContainerInterface;
 
 interface ContainerAwareInterface

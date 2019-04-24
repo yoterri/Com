@@ -16,29 +16,26 @@ namespace Com\Db;
 use Zend;
 use Zend\Db\TableGateway\TableGateway;
 use Zend\Db\Adapter\Adapter;
-use Zend\EventManager\EventManager;
 use Zend\EventManager\Event;
-use Zend\EventManager\EventManagerInterface;
-use Zend\Db\Adapter\AdapterAwareInterface;
 use Zend\EventManager\EventManagerAwareInterface;
-use Interop\Container\ContainerInterface;
 use Zend\Db\Sql\Where;
 use Zend\Paginator\Adapter\DbSelect;
 use Zend\Paginator\Paginator;
+use Zend\EventManager\EventManagerAwareTrait;
+use Zend\Db\Adapter\AdapterAwareTrait;
+use Zend\Db\Adapter\AdapterAwareInterface;
 
 use Com\Entity\Record;
-use Com\ContainerAwareInterface;
-use Com\LazyLoadInterface;
+use Com\Interfaces\ContainerAwareInterface;
+use Com\Interfaces\LazyLoadInterface;
+use Com\Db\AbstractDbInterface;
+use Com\Traits\ContainerAwareTrait;
 
-
-class AbstractDb extends TableGateway implements AdapterAwareInterface, EventManagerAwareInterface, ContainerAwareInterface, LazyLoadInterface
+class AbstractDb extends TableGateway implements AdapterAwareInterface, AbstractDbInterface, EventManagerAwareInterface, ContainerAwareInterface, LazyLoadInterface
 {
     
-    /**
-     * @var ContainerInterface
-     */
-    protected $container;
-
+    use AdapterAwareTrait, EventManagerAwareTrait, ContainerAwareTrait;
+    
 
     /**
      * Name of the database table without prefix
@@ -78,10 +75,6 @@ class AbstractDb extends TableGateway implements AdapterAwareInterface, EventMan
      */
     protected $resultSet = null;
 
-    /**
-     * @var EventManagerInterface
-     */
-    protected $eventManager;
 
     /**
      *
@@ -131,74 +124,12 @@ class AbstractDb extends TableGateway implements AdapterAwareInterface, EventMan
 
 
     /**
-     * @param ContainerInterface $container
-     */
-    function setContainer(ContainerInterface $container)
-    {
-        $this->container = $container;
-    }
-    
-    
-    /**
-     * @return ContainerInterface
-     */
-    function getContainer()
-    {
-        return $this->container;
-    }
-
-
-    /**
      * @param bool $val
      * @return AbstractDb
      */
     function setEnableDebug($val)
     {
         $this->enableDebug = (bool)$val;
-        return $this;
-    }
-    
-    
-    
-    /**
-     * @param $eventManager EventManagerInterface
-     * @return AbstractDb
-     */
-    function setEventManager(EventManagerInterface $eventManager)
-    {
-        $eventManager->addIdentifiers(array(
-            get_called_class()
-        ));
-    
-        $this->eventManager = $eventManager;
-        
-        # $this->getEventManager()->trigger('sendTweet', null, array('content' => $content));
-        return $this;
-    }
-    
-    
-    /**
-     * @return EventManagerInterface
-     */
-    public function getEventManager()
-    {
-        if(null === $this->eventManager)
-        {
-            $this->setEventManager(new EventManager());
-        }
-
-        return $this->eventManager;
-    }
-    
-    
-    
-    /**
-     *
-     * @param Adapter $adapter
-     */
-    function setDbAdapter(Adapter $adapter)
-    {
-        $this->adapter = $adapter;
         return $this;
     }
 

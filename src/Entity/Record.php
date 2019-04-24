@@ -5,7 +5,7 @@
 namespace Com\Entity;
 
 use Com\Entity\AbstractEntity;
-use Com\LazyLoadInterface;
+use Com\Interfaces\LazyLoadInterface;
 
 class Record extends AbstractEntity implements LazyLoadInterface
 {

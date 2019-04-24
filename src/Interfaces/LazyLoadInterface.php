@@ -1,6 +1,6 @@
 <?php
 
-namespace Com;
+namespace Com\Interfaces;
 
 interface LazyLoadInterface
 {

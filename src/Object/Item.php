@@ -5,7 +5,7 @@
 namespace Com\Object;
 
 use Com\Object\AbstractObject;
-use Com\LazyLoadInterface;
+use Com\Interfaces\LazyLoadInterface;
 
 class Item extends AbstractObject implements LazyLoadInterface
 {

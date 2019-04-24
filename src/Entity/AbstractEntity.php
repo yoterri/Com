@@ -5,7 +5,7 @@
 namespace Com\Entity;
 
 use Zend;
-use Com\LazyLoadInterface;
+use Com\Interfaces\LazyLoadInterface;
 use Com\Db\AbstractDb;
 use Com\Object\AbstractObject;
 

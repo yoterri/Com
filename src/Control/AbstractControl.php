@@ -1,6 +1,7 @@
 <?php
 
 namespace Com\Control;
+
 use Interop\Container\ContainerInterface;
 use Zend\InputFilter\InputFilter;
 use Zend\Db\Adapter\AdapterAwareInterface;
@@ -9,54 +10,25 @@ use Zend\EventManager\EventManagerAwareInterface;
 use Zend\Db\Adapter\Adapter;
 use Zend\EventManager\EventManager;
 use Zend\EventManager\Event;
-use Zend\EventManager\EventManagerInterface;
 use Zend\Stdlib\Parameters;
 
+use Zend\EventManager\EventManagerAwareTrait;
+use Zend\Db\Adapter\AdapterAwareTrait;
+
 use Com\Communicator;
-use Com\ContainerAwareInterface;
-use Com\LazyLoadInterface;
+use Com\Interfaces\ContainerAwareInterface;
+use Com\Interfaces\LazyLoadInterface;
 use Com\InputFilter\AbstractInputFilter;
+use Com\Traits\ContainerAwareTrait;
 
 abstract class AbstractControl implements ContainerAwareInterface, AdapterAwareInterface, EventManagerAwareInterface, LazyLoadInterface
 {
-
-    /**
-     * @var ContainerInterface
-     */
-    protected $container;
-
-    /**
-     * @var EventManagerInterface
-     */
-    protected $eventManager;
-
-    /**
-     * @var Zend\Db\Adapter\Adapter
-     */
-    protected $adapter;
+    use AdapterAwareTrait, EventManagerAwareTrait, ContainerAwareTrait;
 
     /**
      * @var Com\Communicator
      */
     protected $communicator;
-
-
-    /**
-     * @param ContainerInterface $container
-     */
-    function setContainer(ContainerInterface $container)
-    {
-        $this->container = $container;
-    }
-    
-    
-    /**
-     * @return ContainerInterface
-     */
-    function getContainer()
-    {
-        return $this->container;
-    }
 
 
     /**
@@ -81,36 +53,6 @@ abstract class AbstractControl implements ContainerAwareInterface, AdapterAwareI
 
 
     /**
-     * @param $eventManager EventManagerInterface
-     */
-    function setEventManager(EventManagerInterface $eventManager)
-    {
-        $eventManager->addIdentifiers(array(
-            get_called_class()
-        ));
-    
-        $this->eventManager = $eventManager;
-        
-        # $this->getEventManager()->trigger('sendTweet', null, array('content' => $content));
-        return $this;
-    }
-    
-    
-    /**
-     * @return EventManagerInterface
-     */
-    public function getEventManager()
-    {
-        if(null === $this->eventManager)
-        {
-            $this->setEventManager(new EventManager());
-        }
-
-        return $this->eventManager;
-    }
-
-
-    /**
      * @param string $eventName
      * @param array $eventParams
      * @return Event
@@ -120,17 +62,6 @@ abstract class AbstractControl implements ContainerAwareInterface, AdapterAwareI
         $event = new Event($eventName, $this, $eventParams);
         $this->getEventManager()->triggerEvent($event);
         return $event;
-    }
-
-
-    /**
-     *
-     * @param Adapter $adapter
-     */
-    function setDbAdapter(Adapter $adapter)
-    {
-        $this->adapter = $adapter;
-        return $this;
     }
 
 
@@ -420,8 +351,6 @@ abstract class AbstractControl implements ContainerAwareInterface, AdapterAwareI
 
     private function _triggerEvent($eventName, $eventParams)
     {
-        $event = new Event($eventName, $this, $eventParams);
-        $this->getEventManager()->triggerEvent($event);
-        return $event;
+        return $this->triggerEvent($eventName, $eventParams);
     }
 }

@@ -2,29 +2,20 @@
 
 namespace Com\Form;
 
-use Com\LazyLoadInterface;
-use Com\ContainerAwareInterface;
+use Com\Interfaces\LazyLoadInterface;
+use Com\Interfaces\ContainerAwareInterface;
+use Com\Traits\ContainerAwareTrait;
 
 use Zend\Form\Form;
 use Zend\EventManager\Event;
-use Zend\EventManager\EventManager;
-use Zend\EventManager\EventManagerInterface;
 use Zend\EventManager\EventManagerAwareInterface;
 use Interop\Container\ContainerInterface;
+use Zend\EventManager\EventManagerAwareTrait;
+
 
 abstract class AbstractForm extends Form implements LazyLoadInterface, EventManagerAwareInterface, ContainerAwareInterface
 {
-    
-    /**
-     * @var ContainerInterface
-     */
-    protected $container;
-    
-    /**
-     * @var EventManagerInterface
-     */
-    protected $eventManager;
-    
+    use EventManagerAwareTrait, ContainerAwareTrait;
     
     /**
      * @param array $data
@@ -72,56 +63,7 @@ abstract class AbstractForm extends Form implements LazyLoadInterface, EventMana
 
         return $this;
     }
-    
-    
-    
-    /**
-     * @param ContainerInterface $container
-     */
-    function setContainer(ContainerInterface $container)
-    {
-        $this->container = $container;
-    }
-    
-    
-    /**
-     * @return ContainerInterface
-     */
-    function getContainer()
-    {
-        return $this->container;
-    }
        
-    
-    /**
-     * @param $eventManager EventManagerInterface
-     */
-    function setEventManager(EventManagerInterface $eventManager)
-    {
-        $eventManager->addIdentifiers(array(
-            get_called_class()
-        ));
-    
-        $this->eventManager = $eventManager;
-        
-        # $this->getEventManager()->trigger('sendTweet', null, array('content' => $content));
-        return $this;
-    }
-    
-    
-    /**
-     * @return EventManagerInterface
-     */
-    public function getEventManager()
-    {
-        if(null === $this->eventManager)
-        {
-            $this->setEventManager(new EventManager());
-        }
-        
-        return $this->eventManager;
-    }
-    
     
     /**
      * @return AbstractForm

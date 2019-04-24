@@ -2,65 +2,24 @@
 
 namespace Com\InputFilter;
 
-use Com\ContainerAwareInterface;
-use Com\LazyLoadInterface;
+use Com\Interfaces\ContainerAwareInterface;
+use Com\Interfaces\LazyLoadInterface;
+use Com\Traits\ContainerAwareTrait;
 
 use Interop\Container\ContainerInterface;
 use Zend\InputFilter\InputFilter;
 use Zend\EventManager\EventManagerAwareInterface;
-use Zend\EventManager\Event;
-use Zend\EventManager\EventManager;
-use Zend\EventManager\EventManagerInterface;
+use Zend\EventManager\EventManagerAwareTrait;
 
 abstract class AbstractInputFilter extends InputFilter implements LazyLoadInterface, EventManagerAwareInterface, ContainerAwareInterface
 {
+    use ContainerAwareTrait, EventManagerAwareTrait;
 
-    /**
-     * @var ContainerInterface
-     */
-    protected $container;
 
     /**
      * @var array
      */
     protected $params = array();
-
-    /**
-     * @var EventManagerInterface
-     */
-    protected $eventManager;
-
-
-
-    /**
-     * @param $eventManager EventManagerInterface
-     */
-    function setEventManager(EventManagerInterface $eventManager)
-    {
-        $eventManager->addIdentifiers(array(
-            get_called_class()
-        ));
-    
-        $this->eventManager = $eventManager;
-        
-        # $this->getEventManager()->trigger('sendTweet', null, array('content' => $content));
-        return $this;
-    }
-    
-    
-    /**
-     * @return EventManagerInterface
-     */
-    public function getEventManager()
-    {
-        if(null === $this->eventManager)
-        {
-            $this->setEventManager(new EventManager());
-        }
-
-        return $this->eventManager;
-    }
-
 
 
     /**
@@ -130,23 +89,6 @@ abstract class AbstractInputFilter extends InputFilter implements LazyLoadInterf
     function hasParam($key)
     {
         return isset($this->params[$key]);
-    }
-
-    /**
-     * @param ContainerInterface $container
-     */
-    function setContainer(ContainerInterface $container)
-    {
-        $this->container = $container;
-    }
-    
-    
-    /**
-     * @return ContainerInterface
-     */
-    function getContainer()
-    {
-        return $this->container;
     }
 
 

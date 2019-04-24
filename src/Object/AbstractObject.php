@@ -7,15 +7,14 @@ namespace Com\Object;
 use Traversable;
 use Zend;
 use Interop\Container\ContainerInterface;
-use Com\ContainerAwareInterface;
-use Com\LazyLoadInterface;
+use Com\Interfaces\ContainerAwareInterface;
+use Com\Interfaces\LazyLoadInterface;
+use Com\Traits\ContainerAwareTrait;
 
 abstract class AbstractObject implements ContainerAwareInterface, LazyLoadInterface, \ArrayAccess
 {
-    /**
-     * @var ContainerInterface
-     */
-    protected $container;
+    use ContainerAwareTrait;
+
 
     /**
      * @var array
@@ -138,24 +137,6 @@ abstract class AbstractObject implements ContainerAwareInterface, LazyLoadInterf
         return $obj;
     }
     
-    
-    /**
-     * @param ContainerInterface $container
-     */
-    function setContainer(ContainerInterface $container)
-    {
-        $this->container = $container;
-    }
-    
-    
-    /**
-     * @return ContainerInterface
-     */
-    function getContainer()
-    {
-        return $this->container;
-    }
-
 
     /**
      *

@@ -3,8 +3,10 @@
 namespace Com\GridBuilder;
 
 use Com\Component\TinyGrid\Grid;
-use Com\LazyLoadInterface;
-use Com\ContainerAwareInterface;
+use Com\Interfaces\LazyLoadInterface;
+use Com\Interfaces\ContainerAwareInterface;
+use Com\Traits\ContainerAwareTrait;
+
 use Interop\Container\ContainerInterface;
 use Zend\EventManager\EventManager;
 use Zend\Escaper\Escaper;
@@ -12,33 +14,12 @@ use Zend\Db\Sql\Select;
 
 abstract class AbstractBuilder implements ContainerAwareInterface, LazyLoadInterface
 {
-    /**
-     * @var ContainerInterface
-     */    
-    protected $container;
+    use ContainerAwareTrait;
 
     /**
      * @var Grid
      */
     protected $tinyGrid = false;
-
-    /**
-     * @param ContainerInterface $container
-     * @return Builder
-     */
-    function setContainer(ContainerInterface $container)
-    {
-        $this->container = $container;
-        return $this;
-    }
-
-    /**
-     * @return ContainerInterface
-     */
-    function getContainer()
-    {
-        return $this->container;
-    }
 
 
     /**
@@ -77,7 +58,7 @@ abstract class AbstractBuilder implements ContainerAwareInterface, LazyLoadInter
         $escaper = new Escaper();
         $this->tinyGrid->setEscaper($escaper);
 
-        $container =$this->getContainer();
+        $container = $this->getContainer();
         if($container)
         {
             if($container->has('Zend\EventManager\EventManager'))
