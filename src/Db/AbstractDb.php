@@ -406,7 +406,7 @@ class AbstractDb extends TableGateway implements AdapterAwareInterface, Abstract
      * 
      * @throws \RuntimeException
      */
-    function findBy($where = null, $cols = array(), $order = null, $count = null, $offset = null, Com\Entity\AbstractEntity $entity = null)
+    function findBy($where = null, $cols = array(), $order = null, $count = null, $offset = null, \Com\Entity\AbstractEntity $entity = null)
     {
         $sql = $this->getSql();
         $select = $sql->select();
@@ -430,7 +430,7 @@ class AbstractDb extends TableGateway implements AdapterAwareInterface, Abstract
      * 
      * @return Zend\Db\ResultSet\AbstractResultSet
      */
-    function findRecord($primaryKey = null, $colName = null, Com\Entity\AbstractEntity $entity = null)
+    function findRecord($primaryKey = null, $colName = null, \Com\Entity\AbstractEntity $entity = null)
     {
         $data = array();
 
@@ -502,7 +502,7 @@ class AbstractDb extends TableGateway implements AdapterAwareInterface, Abstract
      * 
      * @return Zend\Db\ResultSet\AbstractResultSet
      */
-    function findAll($order = null, Com\Entity\AbstractEntity $entity = null)
+    function findAll($order = null, \Com\Entity\AbstractEntity $entity = null)
     {
         #new Zend\Db\ResultSet\ResultSet();
         $cols = array('*');
@@ -519,7 +519,7 @@ class AbstractDb extends TableGateway implements AdapterAwareInterface, Abstract
      * 
      * @return Com\Entity\AbstractEntity | null
      */
-    function findByPrimaryKey($mixed, $colName = null, Com\Entity\AbstractEntity $entity = null)
+    function findByPrimaryKey($mixed, $colName = null, \Com\Entity\AbstractEntity $entity = null)
     {
         if(! is_array($mixed))
         {
@@ -643,7 +643,7 @@ class AbstractDb extends TableGateway implements AdapterAwareInterface, Abstract
      * 
      * @return Zend\Db\ResultSet\AbstractResultSet | mixed
      */
-    function executeCustomSelect(Zend\Db\Sql\Select $select, Com\Entity\AbstractEntity $entity = null)
+    function executeCustomSelect(Zend\Db\Sql\Select $select, \Com\Entity\AbstractEntity $entity = null)
     {
         // prepare and execute
 
