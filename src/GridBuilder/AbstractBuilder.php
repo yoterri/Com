@@ -9,12 +9,14 @@ use Com\Traits\ContainerAwareTrait;
 
 use Interop\Container\ContainerInterface;
 use Zend\EventManager\EventManager;
+use Zend\EventManager\EventManagerAwareTrait;
+use Zend\EventManager\EventManagerAwareInterface;
 use Zend\Escaper\Escaper;
 use Zend\Db\Sql\Select;
 
-abstract class AbstractBuilder implements ContainerAwareInterface, LazyLoadInterface
+abstract class AbstractBuilder implements ContainerAwareInterface, EventManagerAwareInterface, LazyLoadInterface
 {
-    use ContainerAwareTrait;
+    use ContainerAwareTrait, EventManagerAwareTrait;
 
     /**
      * @var Grid
@@ -25,11 +27,11 @@ abstract class AbstractBuilder implements ContainerAwareInterface, LazyLoadInter
     /**
      * @return TinyGrid
      */
-    function getGrid()
+    function build($basePath = null, array $queryParams = array(), $gridName = null)
     {
         if(!$this->tinyGrid)
         {
-            $this->_buildGrid();
+            $this->_buildGrid($gridName, $basePath, $queryParams);
 
             #
             $source = $this->_getSource();
@@ -50,37 +52,19 @@ abstract class AbstractBuilder implements ContainerAwareInterface, LazyLoadInter
     }
 
 
-    protected function _buildGrid()
+    protected function _buildGrid($gridName = null, $basePath = null, array $queryParams = array())
     {
-        $this->tinyGrid = new Grid();
+        $this->tinyGrid = new Grid($basePath, $queryParams, $gridName);
+
+        $eventManager = $this->getEventManager();
+        if($eventManager)
+        {
+            $this->tinyGrid->setEventManager($eventManager);
+        }
 
         #
         $escaper = new Escaper();
         $this->tinyGrid->setEscaper($escaper);
-
-        $container = $this->getContainer();
-        if($container)
-        {
-            if($container->has('Zend\EventManager\EventManager'))
-            {
-                $eventManager = $container->get('Zend\EventManager\EventManager');
-            }
-            elseif($container->has('EventManager'))
-            {
-                $eventManager = $container->get('EventManager');
-            }
-            else
-            {
-                $eventManager = new EventManager();
-            }
-        }
-        else
-        {
-            $eventManager = new EventManager();
-        }
-
-
-        $this->tinyGrid->setEventManager($eventManager);
     }
 
 
