@@ -88,5 +88,21 @@ abstract class AbstractBuilder implements ContainerAwareInterface, EventManagerA
         #
         return $adapter;
     }
+
+
+    /**
+     * @param string $routeName
+     * @param array $params
+     * @param array $options
+     * @return string
+     */
+    function url($routeName, array $params = [], array $options = [])
+    {
+        $sm = $this->getContainer();
+        $router = $sm->get('router');
+        $route = $router->getRoute($routeName);
+
+        return $route->assemble($params, $options);
+    }
     
 }
