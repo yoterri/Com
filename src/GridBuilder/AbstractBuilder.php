@@ -23,6 +23,16 @@ abstract class AbstractBuilder implements ContainerAwareInterface, EventManagerA
      */
     protected $tinyGrid = false;
 
+    /**
+     * @var Zend\Router\RouteMatch
+     */
+    protected $routeMatch;
+
+    /**
+     * @array
+     */
+    protected $routes = [];
+
 
     /**
      * @return TinyGrid
@@ -52,6 +62,42 @@ abstract class AbstractBuilder implements ContainerAwareInterface, EventManagerA
     }
 
 
+    /**
+     * @param string $routeName
+     * @param array $params
+     * @param array $options
+     * @return string
+     */
+    function url($routeName, array $params = [], array $options = [])
+    {
+        $routeMatch = $this->_getRouteMatch();
+        if($routeMatch->getMatchedRouteName() == $routeName)
+        {
+            if(!isset($params['controller']))
+            {
+                $params['controller'] = $routeMatch->getParam('controller');
+            }
+
+            if(!isset($params['module']))
+            {
+                $params['module'] = $routeMatch->getParam('module');
+            }
+
+            if(!isset($params['action']))
+            {
+                $params['action'] = $routeMatch->getParam('action');
+            }
+        }
+
+        $route = $this->_getRoute($routeName);
+        return $route->assemble($params, $options);
+    }
+
+
+    abstract protected function _getSource();
+    abstract protected function _getColumns();
+
+
     protected function _buildGrid($gridName = null, $basePath = null, array $queryParams = array())
     {
         $this->tinyGrid = new Grid($basePath, $queryParams, $gridName);
@@ -65,13 +111,15 @@ abstract class AbstractBuilder implements ContainerAwareInterface, EventManagerA
         #
         $escaper = new Escaper();
         $this->tinyGrid->setEscaper($escaper);
+
+        $this->_init();
     }
 
 
-    abstract protected function _getSource();
-
-
-    abstract protected function _getColumns();
+    protected function _init()
+    {
+        ;
+    }
 
 
     protected function _getAdapter()
@@ -91,18 +139,43 @@ abstract class AbstractBuilder implements ContainerAwareInterface, EventManagerA
 
 
     /**
-     * @param string $routeName
-     * @param array $params
-     * @param array $options
-     * @return string
+     * @return Zend\Router\RouteMatch
      */
-    function url($routeName, array $params = [], array $options = [])
+    protected function _getRouteMatch()
     {
-        $sm = $this->getContainer();
-        $router = $sm->get('router');
-        $route = $router->getRoute($routeName);
+        if(!$this->routeMatch)
+        {
+            $sm = $this->getContainer();
 
-        return $route->assemble($params, $options);
+            #
+            $request = $sm->get('request');
+            $router = $sm->get('router');
+
+            #
+            $this->routeMatch = $router->match($request);
+            #$routeMatch->getMatchedRouteName();
+        }
+
+        return $this->routeMatch;
     }
+
+
     
+    /**
+     * @return Zend\Router\Http\RouteInterface
+     */
+    protected function _getRoute($routeName)
+    {
+        if(!isset($this->routes[$routeName]))
+        {
+            $sm = $this->getContainer();
+            $router = $sm->get('router');
+            $route = $router->getRoute($routeName);
+
+            $this->routes[$routeName] = $route;
+        }
+
+        return $this->routes[$routeName];
+    }
+
 }
