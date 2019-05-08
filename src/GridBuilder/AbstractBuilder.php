@@ -29,9 +29,9 @@ abstract class AbstractBuilder implements ContainerAwareInterface, EventManagerA
     protected $routeMatch;
 
     /**
-     * @array
+     * @var Zend\Router\RouteStackInterface
      */
-    protected $routes = [];
+    protected $router = null;
 
 
     /**
@@ -66,31 +66,23 @@ abstract class AbstractBuilder implements ContainerAwareInterface, EventManagerA
      * @param string $routeName
      * @param array $params
      * @param array $options
+     * @param bool $reuseMatchedParams
      * @return string
      */
-    function url($routeName, array $params = [], array $options = [])
+    function url($routeName, array $params = [], array $options = [], $reuseMatchedParams = true)
     {
         $routeMatch = $this->_getRouteMatch();
-        if($routeMatch->getMatchedRouteName() == $routeName)
+        if($reuseMatchedParams && $routeMatch)
         {
-            if(!isset($params['controller']))
-            {
-                $params['controller'] = $routeMatch->getParam('controller');
-            }
-
-            if(!isset($params['module']))
-            {
-                $params['module'] = $routeMatch->getParam('module');
-            }
-
-            if(!isset($params['action']))
-            {
-                $params['action'] = $routeMatch->getParam('action');
-            }
+            #$routeMatch->getMatchedRouteName() == $routeName;
+            $routeMatchParams = $routeMatch->getParams();
+            $params = array_merge($routeMatchParams, $params);
         }
 
-        $route = $this->_getRoute($routeName);
-        return $route->assemble($params, $options);
+        $options['name'] = $routeName;
+        $router = $this->_getRouter();
+
+        return $router->assemble($params, $options);
     }
 
 
@@ -149,7 +141,7 @@ abstract class AbstractBuilder implements ContainerAwareInterface, EventManagerA
 
             #
             $request = $sm->get('request');
-            $router = $sm->get('router');
+            $router = $this->_getRouter();
 
             #
             $this->routeMatch = $router->match($request);
@@ -162,20 +154,17 @@ abstract class AbstractBuilder implements ContainerAwareInterface, EventManagerA
 
     
     /**
-     * @return Zend\Router\Http\RouteInterface
+     * @return Zend\Router\RouteStackInterface
      */
-    protected function _getRoute($routeName)
+    protected function _getRouter()
     {
-        if(!isset($this->routes[$routeName]))
+        if(!isset($this->router))
         {
             $sm = $this->getContainer();
-            $router = $sm->get('router');
-            $route = $router->getRoute($routeName);
-
-            $this->routes[$routeName] = $route;
+            $this->router = $sm->get('router');
         }
 
-        return $this->routes[$routeName];
+        return $this->router;
     }
 
 }
