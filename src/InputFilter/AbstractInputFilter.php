@@ -10,6 +10,7 @@ use Interop\Container\ContainerInterface;
 use Zend\InputFilter\InputFilter;
 use Zend\EventManager\EventManagerAwareInterface;
 use Zend\EventManager\EventManagerAwareTrait;
+use Zend\EventManager\Event;
 
 abstract class AbstractInputFilter extends InputFilter implements LazyLoadInterface, EventManagerAwareInterface, ContainerAwareInterface
 {
