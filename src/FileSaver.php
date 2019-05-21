@@ -488,6 +488,7 @@ class FileSaver
         
         $allowedTypes = [
             'image/jpeg',
+            'image/pjpeg',
             'image/png',
             'image/gif' 
         ];
@@ -698,7 +699,7 @@ class FileSaver
             $isAllowed = false;
             foreach($allowed as $mime => $ext)
             {
-                if(strtolower($mime) == strtolower($postedFile->getType()))
+                if(strtolower($ext) == strtolower($postedFile->getType()))
                 {
                     $isAllowed = true;
                 }
