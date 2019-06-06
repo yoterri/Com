@@ -6,6 +6,7 @@ use Com\Interfaces\LazyLoadInterface;
 
 class DsFormatter implements LazyLoadInterface
 {
+    protected $_data;
 
      /**
      *
@@ -170,6 +171,11 @@ class DsFormatter implements LazyLoadInterface
     * $valueField = 'column_2';
     * $formatter->toFormSelect($textField, $valueField);
     *
+    * example 3
+    * $textField = array('the column is: %colname_1%, other value %colname_2%', array('%colname_1%' => function($row){return 21;}, '%colname_2%'=>'colname_2'));
+    * $valueField = 'column_2';
+    * $formatter->toFormSelect($textField, $valueField);
+    *
     * @return array
     */
    function toFormSelect($textField, $valueField)
@@ -212,11 +218,21 @@ class DsFormatter implements LazyLoadInterface
 
         foreach($array[1] as $key => $value)
         {
-            $vars[$key] = $row[$value];
+            if(is_callable($value)) {
+                $value = call_user_func($value, $row);
+            }
+
+            $vars[$key] = isset($row[$value]) ? $row[$value] : $value;
         }
 
-        return string_replace($array[0], $vars);
+        return $this->_string_replace($array[0], $vars);
    }
+   
+   
+    protected function _string_replace($str, array $vars=array())
+    {
+        return str_replace(array_keys($vars), array_values($vars), $str);
+    }
     
     /*
     protected function _arrayFormatting($array, $row)

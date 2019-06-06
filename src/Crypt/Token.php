@@ -24,7 +24,7 @@ class Token
     protected $serviceLocator;
 
 
-    function __construct(\Zend\ServiceManager\ServiceLocatorInterface $serviceLocator)
+    function __construct(\Zend\ServiceManager\ServiceLocatorInterface $serviceLocator = null)
     {
         $this->serviceLocator = $serviceLocator;
     }
@@ -37,11 +37,16 @@ class Token
     function getToken($publicKey = null)
     {
         $salt = null;
-        if($this->serviceLocator->has('config'))
+
+        if($this->serviceLocator)
         {
-            $config = $this->serviceLocator->get('config');   
-            $salt = isset($config['application_salt']) ? $config['application_salt'] : null;
+            if($this->serviceLocator->has('config'))
+            {
+                $config = $this->serviceLocator->get('config');   
+                $salt = isset($config['application_salt']) ? $config['application_salt'] : null;
+            }
         }
+        
         
         $time = time();
         if(empty($publicKey))
@@ -95,10 +100,13 @@ class Token
         if(($currentTime <= ($tokenTime + $ttl)) || (0 == $ttl))
         {
             $salt = null;
-            if($this->serviceLocator->has('config'))
+            if($this->serviceLocator)
             {
-                $config = $this->serviceLocator->get('config');
-                $salt = isset($config['application_salt']) ? $config['application_salt'] : null;
+                if($this->serviceLocator->has('config'))
+                {
+                    $config = $this->serviceLocator->get('config');
+                    $salt = isset($config['application_salt']) ? $config['application_salt'] : null;
+                }
             }
 
             $plain = $publicKey . $tokenTime . self::PRIVATE_KEY . $salt;
