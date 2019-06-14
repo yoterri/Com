@@ -512,8 +512,11 @@ class AbstractDb extends TableGateway implements AdapterAwareInterface, Abstract
 
 
     /**
-     *
-     * @param int $mixed
+     * findByPrimaryKey(2);
+     * findByPrimaryKey(2, 'column_name');
+     * findByPrimaryKey(['col_name1 = ?' => 1, 'col_name2 = ?' => 2]);
+     * 
+     * @param mixed $mixed
      * @param string $colName
      * @param Com\Entity\AbstractEntity $entity
      * 
@@ -525,11 +528,17 @@ class AbstractDb extends TableGateway implements AdapterAwareInterface, Abstract
         {
             if(empty($colName))
             {
-                $colName = 'id';
+                $entity = $this->getEntity();
+                $colName = $entity->getPrimaryKeyColumn();
             }
-            
-            $where = array();
-            $where["$colName = ?"] = $mixed;
+
+            if(is_array($colName)) 
+            {
+                $colName = current($colName);
+            }
+
+            $where = new Where();
+            $where->equalTo($colName, $mixed);
         }
         else
         {
@@ -550,7 +559,13 @@ class AbstractDb extends TableGateway implements AdapterAwareInterface, Abstract
     {
         if(empty($colName))
         {
-            $colName = 'id';
+            $entity = $this->getEntity();
+            $colName = $entity->getPrimaryKeyColumn();
+        }
+
+        if(is_array($colName)) 
+        {
+            $colName = current($colName);
         }
         
         $where = new Where();
