@@ -30,12 +30,10 @@ class DsFormatter implements LazyLoadInterface
             {
                 if(method_exists($rowset, 'toArray'))
                 {
-                    
                     $rowset = $rowset->toArray();
                 }
                 elseif(method_exists($rowset, 'getArrayCopy'))
                 {
-                    
                     $rowset = $rowset->getArrayCopy();
                 }
                 else
@@ -88,11 +86,36 @@ class DsFormatter implements LazyLoadInterface
         if(count($fields) > 0)
         {
             $c = 0;
+            $method = null;
+
             foreach($data as $row)
             {
                 if(!is_array($row))
                 {
-                    $row = $row->toArray();
+                    if(is_null($method))
+                    {
+                        if(method_exists($row, 'toArray'))
+                        {
+                            $method = 'toArray';
+                        }
+                        elseif(method_exists($row, 'getArrayCopy'))
+                        {
+                            $method = 'getArrayCopy';
+                        }
+                        else 
+                        {
+                            $method = false;
+                        }
+                    }
+
+                    if($method)
+                    {
+                        $row = $row->$method();
+                    }
+                    else
+                    {
+                        $row = [];
+                    }
                 }
 
                 foreach($fields as $key => $field)
@@ -138,12 +161,10 @@ class DsFormatter implements LazyLoadInterface
         {
             if(method_exists($data, 'toArray'))
             {
-                
                 $r = $data->toArray();
             }
             elseif(method_exists($data, 'getArrayCopy'))
             {
-                
                 $r = $data->getArrayCopy();
             }
             else

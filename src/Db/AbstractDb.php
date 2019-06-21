@@ -75,12 +75,16 @@ class AbstractDb extends TableGateway implements AdapterAwareInterface, Abstract
      */
     protected $resultSet = null;
 
-
     /**
      *
      * @var bool
      */
     protected $enableDebug = false;
+
+    /**
+     * @var AbstractPreparableSql
+     */
+    protected $query;
 
 
     /**
@@ -120,6 +124,107 @@ class AbstractDb extends TableGateway implements AdapterAwareInterface, Abstract
         
         // result prototype
         $this->resultSetPrototype = ($resultSetPrototype) ?  : new Zend\Db\ResultSet\ResultSet();
+    }
+
+
+    /**
+     * @param string $type - select|insert|update|delete
+     * @return AbstractDb
+     */
+    function prepareQuery($type = 'select')
+    {
+        $supported = ['select', 'insert', 'update', 'delete'];
+
+        if(!in_array($type, $supported)) {
+            throw new \Exception("Unsupported query type '$type'");
+        }
+
+
+        $sql = $this->query = $this->getSql();
+
+        $this->query = $sql->$type();
+
+        return $this;
+    }
+
+
+    /**
+     * @return AbstractPreparableSql
+     */
+    function getQuery()
+    {
+        if(!$this->query)
+            $this->prepareQuery();
+
+        return $this->query;
+    }
+
+
+    /**
+     * @param AbstractEntity $entity - only used when query is of type Select
+     * @return mixed
+     */
+    function executeQuery(AbstractEntity $entity = null)
+    {
+        if($this->query instanceof Select) {
+            return $this->executeCustomSelect($this->query, $entity);
+        } elseif($this->query instanceof Insert) {
+
+            $rawState = $this->query->getRawState();
+            $columns = $rawState['columns'];
+            $values = $rawState['values'];
+
+            $data = array_combine($columns, $values);
+            return $this->doInsert($data);
+        } elseif($this->query instanceof Update) {
+
+            $rawState = $this->query->getRawState();
+            $data = $rawState['set'];
+            $where = $rawState['where'];
+
+            return $this->doUpdate($data, $where);
+        } elseif($this->query instanceof Delete) {
+            $rawState = $this->query->getRawState();
+            $where = $rawState['where'];
+
+            return $this->doDelete($where);
+        }
+    }
+
+
+    /**
+     * @param int $pageNumber
+     * @param int $itemsPerPage
+     * @param string|Zend\Db\Adapter\Adapter $adapter
+     * @return Zend\Paginator\Paginator
+     */
+    function getPaginator($pageNumber = null, $itemsPerPage = null, $adapter = null)
+    {
+
+        if(!$adapter) {
+            $sm = $this->getContainer();
+
+            if(is_string($adapter)) {
+                $dbAdapter = $sm->get($adapter);
+            } else {
+                $dbAdapter = $this->getDbAdapter();
+            }
+        } else {
+            $dbAdapter = $adapter;
+        }
+
+        $paginatorAdapter = new DbSelect($this->getQuery(), $dbAdapter);
+        $paginator = new Paginator($paginatorAdapter);
+
+        if(!is_null($pageNumber)) {
+            $paginator->setCurrentPageNumber($pageNumber);
+        }
+
+        if(!is_null($itemsPerPage)) {
+            $paginator->setItemCountPerPage($itemsPerPage);
+        }
+
+        return $paginator;
     }
 
 
