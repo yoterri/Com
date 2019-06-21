@@ -136,7 +136,8 @@ class AbstractDb extends TableGateway implements AdapterAwareInterface, Abstract
     {
         $supported = ['select', 'insert', 'update', 'delete'];
 
-        if(!in_array($type, $supported)) {
+        if(!in_array($type, $supported))
+        {
             throw new \Exception("Unsupported query type '$type'");
         }
 
@@ -176,9 +177,12 @@ class AbstractDb extends TableGateway implements AdapterAwareInterface, Abstract
      */
     function executeQuery(AbstractEntity $entity = null)
     {
-        if($this->query instanceof Select) {
+        if($this->query instanceof Select)
+        {
             return $this->executeCustomSelect($this->query, $entity);
-        } elseif($this->query instanceof Insert) {
+        }
+        elseif($this->query instanceof Insert)
+        {
 
             $rawState = $this->query->getRawState();
             $columns = $rawState['columns'];
@@ -186,14 +190,18 @@ class AbstractDb extends TableGateway implements AdapterAwareInterface, Abstract
 
             $data = array_combine($columns, $values);
             return $this->doInsert($data);
-        } elseif($this->query instanceof Update) {
+        }
+        elseif($this->query instanceof Update)
+        {
 
             $rawState = $this->query->getRawState();
             $data = $rawState['set'];
             $where = $rawState['where'];
 
             return $this->doUpdate($data, $where);
-        } elseif($this->query instanceof Delete) {
+        }
+        elseif($this->query instanceof Delete)
+        {
             $rawState = $this->query->getRawState();
             $where = $rawState['where'];
 
@@ -210,27 +218,34 @@ class AbstractDb extends TableGateway implements AdapterAwareInterface, Abstract
      */
     function getPaginator($pageNumber = null, $itemsPerPage = null, $adapter = null)
     {
-
-        if(!$adapter) {
+        if(!empty($adapter))
+        {
             $sm = $this->getContainer();
 
-            if(is_string($adapter)) {
+            if(is_string($adapter))
+            {
                 $dbAdapter = $sm->get($adapter);
-            } else {
-                $dbAdapter = $this->getDbAdapter();
             }
-        } else {
-            $dbAdapter = $adapter;
+            else
+            {
+                $dbAdapter = $dbAdapter;
+            }
+        }
+        else
+        {
+            $dbAdapter = $this->getDbAdapter();
         }
 
         $paginatorAdapter = new DbSelect($this->getQuery(), $dbAdapter);
         $paginator = new Paginator($paginatorAdapter);
 
-        if(!is_null($pageNumber)) {
+        if(!is_null($pageNumber))
+        {
             $paginator->setCurrentPageNumber($pageNumber);
         }
 
-        if(!is_null($itemsPerPage)) {
+        if(!is_null($itemsPerPage))
+        {
             $paginator->setItemCountPerPage($itemsPerPage);
         }
 
