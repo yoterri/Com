@@ -24,6 +24,7 @@ use Zend\Paginator\Paginator;
 use Zend\EventManager\EventManagerAwareTrait;
 use Zend\Db\Adapter\AdapterAwareTrait;
 use Zend\Db\Adapter\AdapterAwareInterface;
+use Zend\Db\Sql\AbstractPreparableSql;
 
 use Com\Entity\Record;
 use Com\Interfaces\ContainerAwareInterface;
@@ -141,9 +142,18 @@ class AbstractDb extends TableGateway implements AdapterAwareInterface, Abstract
 
 
         $sql = $this->query = $this->getSql();
+        $query = $sql->$type();
+        return $this->setQuery($query);
+    }
 
-        $this->query = $sql->$type();
 
+    /**
+     * @param AbstractPreparableSql $query
+     * @return AbstractDb
+     */
+    function setQuery(AbstractPreparableSql $query)
+    {
+        $this->query = $query;
         return $this;
     }
 
