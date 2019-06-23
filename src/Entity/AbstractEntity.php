@@ -106,7 +106,7 @@ abstract class AbstractEntity extends AbstractObject implements  AdapterAwareInt
         
         if(is_null($entity))
         {
-            $entity = $this->getContainer()->get('Com\Enity\Record');
+            $entity = $this->getContainer()->get('Com\Entity\Record');
         }
         
         $resultSet->setArrayObjectPrototype($entity);

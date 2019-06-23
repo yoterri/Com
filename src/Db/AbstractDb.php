@@ -545,7 +545,7 @@ class AbstractDb extends TableGateway implements AdapterAwareInterface, Abstract
         
         if(empty($entity))
         {
-            $enity = $this->getEntity();
+            $entity = $this->getEntity();
         }
         
         return $this->executeCustomSelect($select, $entity);
