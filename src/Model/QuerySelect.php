@@ -33,7 +33,6 @@ class QuerySelect extends AbstractModel
      */
     function prepare()
     {
-
         return $this->setSelect(new Select());
     }
 
@@ -131,5 +130,16 @@ class QuerySelect extends AbstractModel
         }
 
         return $paginator;
+    }
+
+
+    public function __get($name)
+    {
+        switch (strtolower($name)) {
+            case 'select':
+                return $this->getSelect();
+            default:
+                throw new \Exception('Not a valid magic property for this object');
+        }
     }
 }
