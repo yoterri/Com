@@ -27,6 +27,7 @@ use Zend\Db\Adapter\AdapterAwareInterface;
 use Zend\Db\Sql\AbstractPreparableSql;
 
 use Com\Entity\Record;
+use Com\Entity\AbstractEntity;
 use Com\Interfaces\ContainerAwareInterface;
 use Com\Interfaces\LazyLoadInterface;
 use Com\Db\AbstractDbInterface;
@@ -175,7 +176,7 @@ class AbstractDb extends TableGateway implements AdapterAwareInterface, Abstract
      * @param AbstractEntity $entity - only used when query is of type Select
      * @return mixed
      */
-    function executeQuery(AbstractEntity $entity = null)
+    function getResult(AbstractEntity $entity = null)
     {
         if($this->query instanceof Select)
         {
