@@ -20,6 +20,7 @@ use Zend\EventManager\Event;
 use Zend\EventManager\EventManagerAwareInterface;
 use Zend\Db\Sql\Where;
 use Zend\Paginator\Adapter\DbSelect;
+use Zend\Db\Sql\Select;
 use Zend\Paginator\Paginator;
 use Zend\EventManager\EventManagerAwareTrait;
 use Zend\Db\Adapter\AdapterAwareTrait;
