@@ -174,10 +174,10 @@ class AbstractDb extends TableGateway implements AdapterAwareInterface, Abstract
 
 
     /**
-     * @param AbstractEntity $entity - only used when query is of type Select
+     * @param AbstractEntity | string $entity - only used when query is of type Select
      * @return mixed
      */
-    function getResult(AbstractEntity $entity = null)
+    function getResult($entity = null)
     {
         if($this->query instanceof Select)
         {
@@ -532,24 +532,18 @@ class AbstractDb extends TableGateway implements AdapterAwareInterface, Abstract
      * @param string $order
      * @param int $count
      * @param int $offset
-     * @param Com\Entity\AbstractEntity $entity
+     * @param Com\Entity\AbstractEntity | string $entity
      * 
      * @return Zend\Db\ResultSet\AbstractResultSet
      * 
      * @throws \RuntimeException
      */
-    function findBy($where = null, $cols = array(), $order = null, $count = null, $offset = null, \Com\Entity\AbstractEntity $entity = null)
+    function findBy($where = null, $cols = array(), $order = null, $count = null, $offset = null, $entity = null)
     {
         $sql = $this->getSql();
         $select = $sql->select();
 
         $select = $this->_apply($select, $where, $cols, $order, $count, $offset);
-        
-        if(empty($entity))
-        {
-            $entity = $this->getEntity();
-        }
-        
         return $this->executeCustomSelect($select, $entity);
     }
 
@@ -558,11 +552,11 @@ class AbstractDb extends TableGateway implements AdapterAwareInterface, Abstract
      *
      * @param int $primaryKey
      * @param string $colName
-     * @param Com\Entity\AbstractEntity $entity
+     * @param Com\Entity\AbstractEntity | string $entity
      * 
      * @return Zend\Db\ResultSet\AbstractResultSet
      */
-    function findRecord($primaryKey = null, $colName = null, \Com\Entity\AbstractEntity $entity = null)
+    function findRecord($primaryKey = null, $colName = null, $entity = null)
     {
         $data = array();
 
@@ -630,11 +624,11 @@ class AbstractDb extends TableGateway implements AdapterAwareInterface, Abstract
     /**
      *
      * @param string $order
-     * @param Com\Entity\AbstractEntity $entity
+     * @param Com\Entity\AbstractEntity | string $entity
      * 
      * @return Zend\Db\ResultSet\AbstractResultSet
      */
-    function findAll($order = null, \Com\Entity\AbstractEntity $entity = null)
+    function findAll($order = null, $entity = null)
     {
         #new Zend\Db\ResultSet\ResultSet();
         $cols = array('*');
@@ -650,17 +644,29 @@ class AbstractDb extends TableGateway implements AdapterAwareInterface, Abstract
      * 
      * @param mixed $mixed
      * @param string $colName
-     * @param Com\Entity\AbstractEntity $entity
+     * @param Com\Entity\AbstractEntity | string $entity
      * 
      * @return Com\Entity\AbstractEntity | null
      */
-    function findByPrimaryKey($mixed, $colName = null, \Com\Entity\AbstractEntity $entity = null)
+    function findByPrimaryKey($mixed, $colName = null, $entity = null)
     {
+
+        if(!$entity)
+        {
+            $entity = $this->getEntity();
+        }
+        else
+        {
+            if(is_string($entity))
+            {
+                $entity = $this->getContainer()->get($entity);
+            }
+        }
+
         if(! is_array($mixed))
         {
             if(empty($colName))
             {
-                $entity = $this->getEntity();
                 $colName = $entity->getPrimaryKeyColumn();
             }
 
@@ -786,11 +792,11 @@ class AbstractDb extends TableGateway implements AdapterAwareInterface, Abstract
     /**
      *
      * @param \Zend\Db\Sql\Select $select
-     * @param \Com\Entity\AbstractEntity $entity
+     * @param \Com\Entity\AbstractEntity | string $entity
      * 
      * @return Zend\Db\ResultSet\AbstractResultSet | mixed
      */
-    function executeCustomSelect(Zend\Db\Sql\Select $select, \Com\Entity\AbstractEntity $entity = null)
+    function executeCustomSelect(Zend\Db\Sql\Select $select, $entity = null)
     {
         // prepare and execute
 
@@ -804,10 +810,17 @@ class AbstractDb extends TableGateway implements AdapterAwareInterface, Abstract
         
         // build result set
         $resultSet = clone $this->resultSetPrototype;
-        
-        if(is_null($entity))
+
+        if(!$entity)
         {
             $entity = $this->getEntity();
+        }
+        else
+        {
+            if(is_string($entity))
+            {
+                $entity = $this->getContainer()->get($entity);
+            }
         }
         
         $resultSet->setArrayObjectPrototype($entity);
