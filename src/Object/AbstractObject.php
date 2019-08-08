@@ -647,4 +647,45 @@ abstract class AbstractObject implements ContainerAwareInterface, LazyLoadInterf
     {
         return $this->getNumberFormatted($fieldOrValue, $decimals, $decimalPoint, $thousands, $def);
     }
+
+
+    /**
+     * @param strign $fieldOrValue
+     * @param strign $initialTimeZone
+     * @param strign $endingTimeZone
+     * @param strign $format - the format you want to convert the date
+     * @param strign $def - default value in case date can't be converted
+     * @return string
+     */
+    function convertDate($fieldOrValue = null, $initialTimeZone = 'UTC', $endingTimeZone = 'America/Los_Angeles', $format = 'Y-m-d H:i:s', $def = '-')
+    {
+        if($this->propertyExist($fieldOrValue))
+        {
+            $value = $this->$fieldOrValue;
+        }
+        else
+        {
+            $value = $fieldOrValue;
+        }
+
+        try {
+
+            if ( ! empty($initialTimeZone) ) {
+                $date = new \DateTime( $value, new \DateTimeZone($initialTimeZone) );
+            } else {
+                $date = new \DateTime( $value );
+            }
+
+            if( !empty($endingTimeZone) ) {
+                $date->setTimezone( new \DateTimeZone($endingTimeZone) );
+            }
+            
+            $def = $date->format($format);
+
+        } catch(\Exception $e) {
+            ;
+        }
+        
+        return $def;
+    }
 }
