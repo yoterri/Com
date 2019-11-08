@@ -102,7 +102,7 @@ class Communicator
 
         if(!empty($key))
         {
-            if(! isset($this->_errors[$key]))
+            if(! isset($this->errors[$key]))
             {
                 $this->errors[$key] = array();
             }
