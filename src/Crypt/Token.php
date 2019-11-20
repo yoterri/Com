@@ -4,7 +4,8 @@ namespace Com\Crypt;
 
 use Com;
 Use Zend;
-
+use \Zend\ServiceManager\ServiceLocatorInterface;
+use Com\Crypt\Password;
 
 class Token
 {
@@ -13,20 +14,80 @@ class Token
      *
      * @var string
      */
-    const PUBLIC_KEY = 'N86T7YOJLKJH';
+    protected $publicKey = 'N86T7YOJLKJH';
     /**
      *
      * @var string
      */
-    const PRIVATE_KEY = 'SDFUyrt@345&*yuio,!pkjhfyHASDOFIASHFISDSFAUSDSODUHIUSAH9876987';
+    protected $privateKey = 'SDFUyrt@345&*yuio,!pkjhfyHASDOFIASHFISDSFAUSDSODUHIUSAH9876987';
 
 
     protected $serviceLocator;
 
 
-    function __construct(\Zend\ServiceManager\ServiceLocatorInterface $serviceLocator = null)
+    function __construct(ServiceLocatorInterface $serviceLocator = null)
     {
         $this->serviceLocator = $serviceLocator;
+    }
+
+
+    /**
+     * @param string $public
+     * @param string $private
+     */
+    function setKeys($public, $private)
+    {
+        $this->setPublicKey($public);
+        $this->setPrivateKey($private);
+        return $this;
+    }
+
+
+    /**
+     * @param string $key
+     */
+    function setPrivateKey($key)
+    {
+        if(empty($key))
+        {
+            throw new \Exception('$Key can\'t be empty');
+        }
+
+        $this->privateKey = $key;
+        return $this;
+    }
+
+
+    /**
+     * @return string
+     */
+    function getPrivateKey()
+    {
+        return $this->privateKey;
+    }
+
+
+    /**
+     * @param string $key
+     */
+    function setPublicKey($key)
+    {
+        if(empty($key))
+        {
+            throw new \Exception('$Key can\'t be empty');
+        }
+
+        $this->publicKey = $key;
+        return $this;
+    }
+
+
+    /**
+     * @return string
+     */
+    function getPublicKey()
+    {
+        return $this->publicKey;
     }
 
 
@@ -34,7 +95,7 @@ class Token
      *
      * @return array
      */
-    function getToken($publicKey = null)
+    function getToken()
     {
         $salt = null;
 
@@ -49,18 +110,20 @@ class Token
         
         
         $time = time();
-        if(empty($publicKey))
-        {
-            $publicKey = self::PUBLIC_KEY;
-        }
+        $publicKey = $this->getPublicKey();
         
-        $plain = $publicKey . $time . self::PRIVATE_KEY . $salt;
+        $plain = $publicKey . $time . $this->getPrivateKey() . $salt;
         
-        $p = new Com\Crypt\Password();
+        $p = new Password();
         
-        $r = array();
-        $r['token_key'] = $publicKey;
-        $r['token_code'] = $p->encode($plain);
+        $r = [];
+
+        $r['key']  = $publicKey;
+        $r['code'] = $code;
+        $r['time'] = $time;
+
+        $r['token_key']  = $publicKey;
+        $r['token_code'] = $code;
         $r['token_time'] = $time;
         
         return $r;
@@ -75,7 +138,7 @@ class Token
     {
         $token = $this->getToken();
         
-        $k = '<input type="hidden" name="token_key" value="' . $token['token_key'] . '">' . PHP_EOL;
+        $k = '<input type="hidden" name="token_key"  value="' . $token['token_key']  . '">' . PHP_EOL;
         $c = '<input type="hidden" name="token_code" value="' . $token['token_code'] . '">' . PHP_EOL;
         $t = '<input type="hidden" name="token_time" value="' . $token['token_time'] . '">' . PHP_EOL;
         
@@ -109,9 +172,9 @@ class Token
                 }
             }
 
-            $plain = $publicKey . $tokenTime . self::PRIVATE_KEY . $salt;
+            $plain = $publicKey . $tokenTime . $this->getPrivateKey() . $salt;
             
-            $p = new Com\Crypt\Password();
+            $p = new Password();
             $flag = $p->validate($plain, $tokenCode);
         }
         
@@ -125,7 +188,7 @@ class Token
      */
     function validateFromPost()
     {
-        $tokenKey = isset($_POST['token_key']) ? $_POST['token_key'] : '';
+        $tokenKey  = isset($_POST['token_key'])  ? $_POST['token_key']  : '';
         $tokenCode = isset($_POST['token_code']) ? $_POST['token_code'] : '';
         $tokenTime = isset($_POST['token_time']) ? $_POST['token_time'] : '';
         
