@@ -115,7 +115,7 @@ class Token
         $plain = $publicKey . $time . $this->getPrivateKey() . $salt;
         
         $p = new Password();
-        
+        $code = $p->encode($plain);
         $r = [];
 
         $r['key']  = $publicKey;
