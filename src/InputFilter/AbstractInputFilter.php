@@ -11,6 +11,7 @@ use Zend\InputFilter\InputFilter;
 use Zend\EventManager\EventManagerAwareInterface;
 use Zend\EventManager\EventManagerAwareTrait;
 use Zend\EventManager\Event;
+use Zend\Validator\ValidatorChain;
 
 abstract class AbstractInputFilter extends InputFilter implements LazyLoadInterface, EventManagerAwareInterface, ContainerAwareInterface
 {
@@ -166,6 +167,24 @@ abstract class AbstractInputFilter extends InputFilter implements LazyLoadInterf
             if(is_string($item) && $this->has($item))
             {
                 $this->remove($item);
+            }
+        }
+
+        return $this;
+    }
+
+
+    /**
+     * @param array $fields
+     */
+    function removeValidators(array $fields)
+    {
+        foreach($fields as $item)
+        {
+            if(is_string($item) && $this->has($item))
+            {
+                $el = $this->get($item);
+                $el->setValidatorChain(new ValidatorChain());
             }
         }
 
