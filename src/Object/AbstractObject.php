@@ -307,7 +307,7 @@ abstract class AbstractObject implements ContainerAwareInterface, LazyLoadInterf
         foreach($keys as $key)
         {
             $tmp = $this->__get($key);
-            if(is_null($tmp) || (is_string($tmp) && '' == $tmp))
+            if(is_null($tmp))
             {
                 $tmp = $this->_getPropertyDefaultValue($key);
             }
