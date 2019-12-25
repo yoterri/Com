@@ -175,7 +175,7 @@ class FileSaver
      *
      * @var array
      */
-    protected $_allowedTypes;
+    protected $_allowedTypes = [];
 
     /**
      *

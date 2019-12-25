@@ -75,6 +75,20 @@ class PostedFile
                 $size = 0;
             }
         }
+        else
+        {
+            if(!empty($name) && empty($type))
+            {
+                if(isset($_FILES[$name]) )
+                {
+                    $type = $_FILES[$name]['type'];
+                    $size = $_FILES[$name]['size'];
+                    $tmpName = $_FILES[$name]['tmp_name'];
+                    $error = $_FILES[$name]['error'];
+                    $name = $_FILES[$name]['name'];
+                }
+            }
+        }
         
         $this->_name = (string)$name;
         $this->_type = (string)$type;
