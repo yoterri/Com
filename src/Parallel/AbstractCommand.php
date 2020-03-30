@@ -132,6 +132,8 @@ Abstract class AbstractCommand extends Command implements EventManagerAwareInter
         $this->dbInstance = $sm->get($this->dbInstanceClass);
         $this->dbItem = $sm->get($this->dbItemClass);
 
+        $this->init();
+
         if($instance)
         {
             $this->instance = (int)$instance;
@@ -143,6 +145,12 @@ Abstract class AbstractCommand extends Command implements EventManagerAwareInter
         }
     }
 
+
+    function init()
+    {
+        ;
+    }
+    
 
     function process($row)
     {
