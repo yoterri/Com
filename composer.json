@@ -18,7 +18,9 @@
         "zendframework/zend-inputfilter": "^2.8",
         "zendframework/zend-xml2json": "^3.1",
         "zendframework/zend-http": "^2.8",
-        "zendframework/zend-escaper": "^2.6"
+        "zendframework/zend-escaper": "^2.6",
+        "zendframework/zend-log": "^2.10",
+        "symfony/console": "3.*"
     },
     "autoload": {
         "psr-4": {
