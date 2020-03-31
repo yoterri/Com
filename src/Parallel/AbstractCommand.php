@@ -78,7 +78,7 @@ Abstract class AbstractCommand extends Command implements EventManagerAwareInter
     /**
      * @var string
      */
-    private $scriptPath;
+    protected $scriptPath;
 
     /**
      * @var Com\Db\AbstractDb
