@@ -132,15 +132,18 @@ Abstract class AbstractCommand extends Command implements EventManagerAwareInter
         $this->dbInstance = $sm->get($this->dbInstanceClass);
         $this->dbItem = $sm->get($this->dbItemClass);
 
-        $this->init();
-
         if($instance)
         {
             $this->instance = (int)$instance;
+
+            $this->init();
             $this->_runInstance();
         }
         else
         {
+            $this->instance = null;
+
+            $this->init();
             $this->_prepareInstances();
         }
     }
