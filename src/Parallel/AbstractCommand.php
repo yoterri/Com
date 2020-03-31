@@ -275,17 +275,24 @@ Abstract class AbstractCommand extends Command implements EventManagerAwareInter
 
         try
         {
+            $this->log("Instance #{$this->instance} - STARTED");
+
             $this->process($data);
 
             $up = ['finished_on' => date('Y-m-d H:i:s')];
             $this->dbItem->doUpdate($up, ['id' => $itemRow->id]);
 
             $this->onProcessed($data, $instanceRow, $itemRow);
+
+            $this->log("Instance #{$this->instance} - FINISHED");
         }
         catch(\Exception $ex)
         {
             $up = ['error' => $ex->getTraceAsString()];
             $this->dbItem->doUpdate($up, ['id' => $itemRow->id]);
+
+            #
+            $this->log("Instance #{$this->instance} - ERROR");
 
             #
             $arr = array(
