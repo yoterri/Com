@@ -85,6 +85,7 @@ class QuerySelect extends AbstractModel
         
         $resultSet->setArrayObjectPrototype($entity);
         $resultSet->initialize($result);
+        $resultSet->buffer();
         
         return $resultSet;
     }
