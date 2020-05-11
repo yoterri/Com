@@ -7,17 +7,42 @@ use Com\Interfaces\LazyLoadInterface;
 class DsFormatter implements LazyLoadInterface
 {
     protected $_data;
+    protected $excludeFields = [];
 
      /**
      *
      * @param array
      */
-    function __construct($rowset = null)
+    function __construct($rowset = null, array $excludeFields = array())
     {
         if(! is_null($rowset))
         {
             $this->setDataSource($rowset);
         }
+
+        $this->setExcludeFields($excludeFields);
+    }
+
+
+    /**
+     * Undocumented function
+     *
+     * @param array $excludeFields
+     */
+    function setExcludeFields($excludeFields)
+    {
+        $this->excludeFields = $excludeFields;
+        return $this;
+    }
+
+
+    /**
+     * Undocumented function
+     * @return array
+     */
+    function getExcludeFields()
+    {
+        return $this->excludeFields;
     }
     
     
@@ -64,6 +89,7 @@ class DsFormatter implements LazyLoadInterface
     /**
      *
      * @param array $fields
+     * @param string $type - exclusive|inclusive
      * @return array
      * 
      * @example example 1
@@ -78,7 +104,7 @@ class DsFormatter implements LazyLoadInterface
      * $fields = array('custom_column_name' => 'column_name', 'title' => function($row){},);
      * $formatter->toArray($fields);
      */
-    function toArray(array $fields = array())
+    function toArray(array $fields = array(), $type = 'exclusive')
     {
         $r = array();
         $data = $this->_data;
@@ -118,40 +144,26 @@ class DsFormatter implements LazyLoadInterface
                     }
                 }
 
-                foreach($fields as $key => $field)
+                if ($this->excludeFields)
                 {
-                    # no special format, only providing the key of the value
-                    if(is_int($key))
+                    foreach($this->excludeFields as $field)
                     {
-                        $value = '';
-                        if(isset($row[$field]))
+                        if (isset($row[$field]))
                         {
-                            $value = $row[$field];
+                            unset($row[$field]);
+                            continue;
                         }
-                        
-                        $r[$c][$field] = $value;
                     }
-                    else
-                    {
-                        $value = '';
-                        if(is_callable($field))
-                        {
-                            $value = call_user_func($field, $row, $key, $c);
-                        }
-                        else
-                        {
-                            if(isset($row[$field]))
-                            {
-                                $value = $row[$field];
-                            }
-                            else
-                            {
-                                $value = $field;
-                            }
-                        }
-                        
-                        $r[$c][$key] = $value;
-                    }
+                }
+
+                if('exclusive' == $type)
+                {
+                    $r = $this->_rowFormatter($r, $fields, $row, $c);
+                }
+                elseif('inclusive' == $type)
+                {
+                    $r[$c] = $row;
+                    $r = $this->_rowFormatter($r, $fields, $row, $c);
                 }
                 
                 $c ++;
@@ -171,8 +183,73 @@ class DsFormatter implements LazyLoadInterface
             {
                 $r = $data;
             }
+
+            foreach($r as $c => $row)
+            {
+                if ($this->excludeFields)
+                {
+                    foreach($this->excludeFields as $field)
+                    {
+                        if (isset($row[$field]))
+                        {
+                            unset($row[$field]);
+                            continue;
+                        }
+                    }
+                }
+
+                $r[$c] = $row;
+            }
         }
         
+        return $r;
+    }
+
+
+    protected function ss()
+    {
+
+    }
+    
+
+    protected function _rowFormatter($r, $fields, $row, $c)
+    {
+        foreach($fields as $key => $field)
+        {
+            # no special format, only providing the key of the value
+            if(is_int($key))
+            {
+                $value = '';
+                if(isset($row[$field]))
+                {
+                    $value = $row[$field];
+                }
+                
+                $r[$c][$field] = $value;
+            }
+            else
+            {
+                $value = '';
+                if(is_callable($field))
+                {
+                    $value = call_user_func($field, $row, $key, $c);
+                }
+                else
+                {
+                    if(isset($row[$field]))
+                    {
+                        $value = $row[$field];
+                    }
+                    else
+                    {
+                        $value = $field;
+                    }
+                }
+                
+                $r[$c][$key] = $value;
+            }
+        }
+
         return $r;
     }
 
