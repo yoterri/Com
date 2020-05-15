@@ -12,14 +12,14 @@ use Symfony\Component\Console\Input\InputOption;
 use Com\Interfaces\LazyLoadInterface;
 use Com\Traits\ContainerAwareTrait;
 use Com\Interfaces\ContainerAwareInterface;
-use Zend\EventManager\EventManagerAwareInterface;
-use Zend\EventManager\EventManagerAwareTrait;
-use Zend\Stdlib\Parameters;
+use Laminas\EventManager\EventManagerAwareInterface;
+use Laminas\EventManager\EventManagerAwareTrait;
+use Laminas\Stdlib\Parameters;
 
-use Zend\Log\Logger;
-use Zend\Log\Formatter\Simple;
-use Zend\Log\Writer\Stream;
-use Zend\Log\Writer\Noop;
+use Laminas\Log\Logger;
+use Laminas\Log\Formatter\Simple;
+use Laminas\Log\Writer\Stream;
+use Laminas\Log\Writer\Noop;
 
 Abstract class AbstractCommand extends Command implements EventManagerAwareInterface, ContainerAwareInterface, LazyLoadInterface
 {

@@ -2,7 +2,7 @@
 
 namespace Com\Validator;
 
-use Zend\Validator\Callback as zCallback;
+use Laminas\Validator\Callback as zCallback;
 
 class Callback extends zCallback
 {   

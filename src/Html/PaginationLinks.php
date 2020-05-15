@@ -1,6 +1,6 @@
 <?php
 namespace Com\Html;
-use Com, Zend;
+use Com, Laminas;
 
 class PaginationLinks
 {
@@ -16,7 +16,7 @@ class PaginationLinks
     protected $pageVarName = 'page';
 
     /**
-     * @var Zend\Paginator\Paginator
+     * @var Laminas\Paginator\Paginator
      */
     protected $paginator;
 
@@ -73,11 +73,11 @@ class PaginationLinks
 
 
     /**
-     * @param Zend\Paginator\Paginator $paginator
+     * @param Laminas\Paginator\Paginator $paginator
      * @param array $qParams
      * @param array $config
      */
-    function __construct(Zend\Paginator\Paginator $paginator, array $qParams = array(), array $config = array())
+    function __construct(Laminas\Paginator\Paginator $paginator, array $qParams = array(), array $config = array())
     {
     	$this->setPaginator($paginator);
     	$this->setConfig($config);
@@ -99,9 +99,9 @@ class PaginationLinks
 
 
     /**
-     * @param Zend\Paginator\Paginator $paginator
+     * @param Laminas\Paginator\Paginator $paginator
      */
-    function setPaginator(Zend\Paginator\Paginator $paginator)
+    function setPaginator(Laminas\Paginator\Paginator $paginator)
     {
     	$this->paginator = $paginator;	
     	return $this;
@@ -109,7 +109,7 @@ class PaginationLinks
 
 
     /**
-     * @return Zend\Paginator\Paginator
+     * @return Laminas\Paginator\Paginator
      */
     function getPaginator()
     {

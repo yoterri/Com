@@ -2,10 +2,10 @@
 
 namespace Com\Factory;
 
-use Zend\ServiceManager\Factory\AbstractFactoryInterface;
-use Zend\ServiceManager\ServiceLocatorInterface;
+use Laminas\ServiceManager\Factory\AbstractFactoryInterface;
+use Laminas\ServiceManager\ServiceLocatorInterface;
 use Interop\Container\ContainerInterface;
-use Zend\EventManager\EventManager;
+use Laminas\EventManager\EventManager;
 use Com\Db\AbstractDb;
 
 class AbstractFactory2 implements AbstractFactoryInterface
@@ -53,7 +53,7 @@ class AbstractFactory2 implements AbstractFactoryInterface
             $instance->setContainer($container);
         }
         
-        if(in_array('Zend\Db\Adapter\AdapterAwareInterface', $implements, true))
+        if(in_array('Laminas\Db\Adapter\AdapterAwareInterface', $implements, true))
         {
             $adapter = $container->get('adapter');
             
@@ -69,13 +69,13 @@ class AbstractFactory2 implements AbstractFactoryInterface
             $instance->setDbAdapter($adapter);
         }
 
-        if(in_array('Zend\EventManager\EventManagerAwareInterface', $implements, true))
+        if(in_array('Laminas\EventManager\EventManagerAwareInterface', $implements, true))
         {
-            if(in_array('Zend\EventManager\EventManagerAwareInterface', $implements, true))
+            if(in_array('Laminas\EventManager\EventManagerAwareInterface', $implements, true))
             {
-                if($container->has('Zend\EventManager\EventManager'))
+                if($container->has('Laminas\EventManager\EventManager'))
                 {
-                    $eventManager = $container->has('Zend\EventManager\EventManager');
+                    $eventManager = $container->has('Laminas\EventManager\EventManager');
                 }
                 else
                 {

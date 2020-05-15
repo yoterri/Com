@@ -1,8 +1,8 @@
 <?php
 namespace Com;
-use Zend;
+use Laminas;
 
-class ArrayUtils extends Zend\Stdlib\ArrayUtils
+class ArrayUtils extends Laminas\Stdlib\ArrayUtils
 {
 
 	/**

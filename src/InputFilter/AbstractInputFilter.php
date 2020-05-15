@@ -7,11 +7,11 @@ use Com\Interfaces\LazyLoadInterface;
 use Com\Traits\ContainerAwareTrait;
 
 use Interop\Container\ContainerInterface;
-use Zend\InputFilter\InputFilter;
-use Zend\EventManager\EventManagerAwareInterface;
-use Zend\EventManager\EventManagerAwareTrait;
-use Zend\EventManager\Event;
-use Zend\Validator\ValidatorChain;
+use Laminas\InputFilter\InputFilter;
+use Laminas\EventManager\EventManagerAwareInterface;
+use Laminas\EventManager\EventManagerAwareTrait;
+use Laminas\EventManager\Event;
+use Laminas\Validator\ValidatorChain;
 
 abstract class AbstractInputFilter extends InputFilter implements LazyLoadInterface, EventManagerAwareInterface, ContainerAwareInterface
 {

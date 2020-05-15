@@ -9,7 +9,7 @@ class DbAdapter
 
     public function __invoke(ContainerInterface $container, $instance)
     {
-        #Zend\Db\Adapter\AdapterAwareInterface
+        #Laminas\Db\Adapter\AdapterAwareInterface
         if(method_exists($instance, 'getAdpaterKey'))
         {
             $adapterKey = $instance->getAdpaterKey();

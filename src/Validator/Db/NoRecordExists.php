@@ -2,7 +2,7 @@
 
 namespace Com\Validator\Db;
 
-use Zend\Validator\Db\NoRecordExists as zNoRecordExists;
+use Laminas\Validator\Db\NoRecordExists as zNoRecordExists;
 
 class NoRecordExists extends zNoRecordExists
 {

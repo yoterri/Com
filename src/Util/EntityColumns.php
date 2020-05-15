@@ -3,7 +3,7 @@
 namespace Com\Util;
 
 use Com\Entity\AbstractEntity;
-use Zend\Db\Sql\Expression;
+use Laminas\Db\Sql\Expression;
 
 class EntityColumns 
 {

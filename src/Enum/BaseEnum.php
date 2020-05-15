@@ -2,7 +2,6 @@
 
 namespace Com\Enum;
 
-use Zend;
 use Com\Interfaces\LazyLoadInterface;
 
 

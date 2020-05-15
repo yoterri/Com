@@ -2,16 +2,16 @@
 
 namespace Com\Model;
 
-use Zend\Db\Sql\Sql;
-use Zend\Db\Sql\Select;
-use Zend\Db\Sql\Where;
-use Zend\Db\Sql\Expression;
-use Zend\Db\Adapter\Adapter;
-use Zend\Db\Adapter\AdapterAwareTrait;
-use Zend\Db\ResultSet\ResultSet;
-use Zend\Paginator\Adapter\DbSelect;
-use Zend\Paginator\Paginator;
-use Zend\Db\Adapter\AdapterAwareInterface;
+use Laminas\Db\Sql\Sql;
+use Laminas\Db\Sql\Select;
+use Laminas\Db\Sql\Where;
+use Laminas\Db\Sql\Expression;
+use Laminas\Db\Adapter\Adapter;
+use Laminas\Db\Adapter\AdapterAwareTrait;
+use Laminas\Db\ResultSet\ResultSet;
+use Laminas\Paginator\Adapter\DbSelect;
+use Laminas\Paginator\Paginator;
+use Laminas\Db\Adapter\AdapterAwareInterface;
 
 use Com\Entity\AbstractEntity;
 use Com\Interfaces\ContainerAwareInterface;
@@ -94,7 +94,7 @@ class QuerySelect extends AbstractModel
     /**
      * @param int $pageNumber
      * @param int $itemsPerPage
-     * @param string|Zend\Db\Adapter\Adapter $adapter
+     * @param string|Laminas\Db\Adapter\Adapter $adapter
      * @return Paginator
      */
     function getPaginator($pageNumber = null, $itemsPerPage = null, $adapter = null)

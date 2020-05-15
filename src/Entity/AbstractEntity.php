@@ -4,21 +4,21 @@
  */
 namespace Com\Entity;
 
-use Zend;
+use Laminas;
 use Com\Interfaces\LazyLoadInterface;
 use Com\Db\AbstractDb;
 use Com\Object\AbstractObject;
 
-use Zend\Db\Sql\Sql;
-use Zend\Db\Sql\Select;
-use Zend\Db\Sql\Where;
-use Zend\Db\Sql\Expression;
-use Zend\Db\Adapter\Adapter;
-use Zend\Db\Adapter\AdapterAwareTrait;
-use Zend\Db\ResultSet\ResultSet;
-use Zend\Paginator\Adapter\DbSelect;
-use Zend\Paginator\Paginator;
-use Zend\Db\Adapter\AdapterAwareInterface;
+use Laminas\Db\Sql\Sql;
+use Laminas\Db\Sql\Select;
+use Laminas\Db\Sql\Where;
+use Laminas\Db\Sql\Expression;
+use Laminas\Db\Adapter\Adapter;
+use Laminas\Db\Adapter\AdapterAwareTrait;
+use Laminas\Db\ResultSet\ResultSet;
+use Laminas\Paginator\Adapter\DbSelect;
+use Laminas\Paginator\Paginator;
+use Laminas\Db\Adapter\AdapterAwareInterface;
 
 
 abstract class AbstractEntity extends AbstractObject implements  AdapterAwareInterface, LazyLoadInterface

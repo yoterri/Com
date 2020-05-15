@@ -2,13 +2,13 @@
 
 namespace Com\Db\Sql;
 
-use Zend\Db\Adapter\Driver\DriverInterface;
-use Zend\Db\Adapter\ParameterContainer;
-use Zend\Db\Adapter\Platform\PlatformInterface;
+use Laminas\Db\Adapter\Driver\DriverInterface;
+use Laminas\Db\Adapter\ParameterContainer;
+use Laminas\Db\Adapter\Platform\PlatformInterface;
 
-use Zend\Db\Sql\Select as zSelect;
+use Laminas\Db\Sql\Select as lSelect;
 
-class Select extends zSelect
+class Select extends lSelect
 {
 
 
@@ -26,7 +26,7 @@ class Select extends zSelect
             return [$driver->formatParameterName('limit')];
         }
 
-        if($platform instanceof  \Zend\Db\Adapter\Platform\Mysql)
+        if($platform instanceof  \Laminas\Db\Adapter\Platform\Mysql)
         {
             return [$this->limit];
         }

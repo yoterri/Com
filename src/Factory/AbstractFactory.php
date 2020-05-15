@@ -2,7 +2,7 @@
 
 namespace Com\Factory;
 
-use Zend\ServiceManager\Factory\AbstractFactoryInterface;
+use Laminas\ServiceManager\Factory\AbstractFactoryInterface;
 use Interop\Container\ContainerInterface;
 use Com\Injector;
 

@@ -1,6 +1,5 @@
 <?php
 namespace Com;
-use Zend;
 
 class Communicator
 {

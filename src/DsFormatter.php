@@ -1,7 +1,7 @@
 <?php
 
 namespace Com;
-use Zend;
+use Laminas;
 use Com\Interfaces\LazyLoadInterface;
 
 class DsFormatter implements LazyLoadInterface
@@ -81,7 +81,7 @@ class DsFormatter implements LazyLoadInterface
     function toJson(array $fields = array())
     {
         $r = $this->toArray($fields);
-        return Zend\Json\Json::encode($r);
+        return Laminas\Json\Json::encode($r);
     }
     
     

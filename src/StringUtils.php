@@ -1,8 +1,8 @@
 <?php
 namespace Com;
-use Zend;
+use Laminas;
 
-class StringUtils extends Zend\Stdlib\StringUtils
+class StringUtils extends Laminas\Stdlib\StringUtils
 {
 
 

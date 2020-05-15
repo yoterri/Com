@@ -1,12 +1,12 @@
 <?php
 namespace Com\Validator\Db;
 
-use Zend\Validator\Exception;
+use Laminas\Validator\Exception;
 
 /**
  * Confirms a record exists in a table.
  */
-class RecordExists extends \Zend\Validator\Db\RecordExists
+class RecordExists extends \Laminas\Validator\Db\RecordExists
 {
 
     protected $byPassValue = null;

@@ -3,17 +3,17 @@
 namespace Com\Control;
 
 use Interop\Container\ContainerInterface;
-use Zend\InputFilter\InputFilter;
-use Zend\Db\Adapter\AdapterAwareInterface;
-use Zend\Db\Sql\Where;
-use Zend\EventManager\EventManagerAwareInterface;
-use Zend\Db\Adapter\Adapter;
-use Zend\EventManager\EventManager;
-use Zend\EventManager\Event;
-use Zend\Stdlib\Parameters;
+use Laminas\InputFilter\InputFilter;
+use Laminas\Db\Adapter\AdapterAwareInterface;
+use Laminas\Db\Sql\Where;
+use Laminas\EventManager\EventManagerAwareInterface;
+use Laminas\Db\Adapter\Adapter;
+use Laminas\EventManager\EventManager;
+use Laminas\EventManager\Event;
+use ZeLaminasnd\Stdlib\Parameters;
 
-use Zend\EventManager\EventManagerAwareTrait;
-use Zend\Db\Adapter\AdapterAwareTrait;
+use Laminas\EventManager\EventManagerAwareTrait;
+use Laminas\Db\Adapter\AdapterAwareTrait;
 
 use Com\Communicator;
 use Com\Interfaces\ContainerAwareInterface;
@@ -67,7 +67,7 @@ abstract class AbstractControl implements ContainerAwareInterface, AdapterAwareI
 
     /**
      *
-     * @return \Zend\Db\Adapter\Adapter
+     * @return \Laminas\Db\Adapter\Adapter
      */
     function getDbAdapter()
     {

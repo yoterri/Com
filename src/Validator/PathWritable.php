@@ -2,7 +2,7 @@
 
 namespace Com\Validator;
 
-use Zend\Validator\AbstractValidator;
+use Laminas\Validator\AbstractValidator;
 
 class PathWritable extends AbstractValidator
 {

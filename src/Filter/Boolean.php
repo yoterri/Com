@@ -2,7 +2,7 @@
 
 namespace Com\Filter;
 
-use Zend\Filter\Boolean as zBoolean;
+use Laminas\Filter\Boolean as zBoolean;
 
 class Boolean extends zBoolean
 {

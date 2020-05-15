@@ -2,8 +2,8 @@
 
 namespace Com;
 use Interop\Container\ContainerInterface;
-use Zend\Db\Adapter\AdapterAwareInterface;
-use Zend\Db\Adapter\Adapter;
+use Laminas\Db\Adapter\AdapterAwareInterface;
+use Laminas\Db\Adapter\Adapter;
 
 use Com\Interfaces\LazyLoadInterface;
 
@@ -11,7 +11,7 @@ class DbTransaction implements AdapterAwareInterface, LazyLoadInterface
 {
 
     /**
-     * @var Zend\Db\Adapter\Adapter
+     * @var Laminas\Db\Adapter\Adapter
      */
     protected $adapter;
 
@@ -41,7 +41,7 @@ class DbTransaction implements AdapterAwareInterface, LazyLoadInterface
 
     /**
      *
-     * @return \Zend\Db\Adapter\Adapter
+     * @return \Laminas\Db\Adapter\Adapter
      */
     function getDbAdapter()
     {

@@ -5,7 +5,7 @@
 namespace Com\Object;
 
 use Traversable;
-use Zend;
+use Laminas;
 use Interop\Container\ContainerInterface;
 use Com\Interfaces\ContainerAwareInterface;
 use Com\Interfaces\LazyLoadInterface;
@@ -179,7 +179,7 @@ abstract class AbstractObject implements ContainerAwareInterface, LazyLoadInterf
         
         if (!is_array($data) && !$data instanceof Traversable)
         {
-            throw new \Exception(sprintf('Parameter provided to %s must be an %s, %s or %s', __METHOD__, 'array', 'Traversable', 'Zend\Stdlib\AbstractOptions'));
+            throw new \Exception(sprintf('Parameter provided to %s must be an %s, %s or %s', __METHOD__, 'array', 'Traversable', 'Laminas\Stdlib\AbstractOptions'));
         }
 
         $this->rawData = $data;

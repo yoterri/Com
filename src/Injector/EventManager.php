@@ -3,8 +3,8 @@
 namespace Com\Injector;
 
 use Interop\Container\ContainerInterface;
-use Zend\EventManager\EventManager as theEventManager;
-use Zend\EventManager\EventManagerAwareInterface;
+use Laminas\EventManager\EventManager as theEventManager;
+use Laminas\EventManager\EventManagerAwareInterface;
 
 class EventManager 
 {
@@ -15,9 +15,9 @@ class EventManager
     {
         if($instance instanceof EventManagerAwareInterface)
         {
-            if($container->has('Zend\EventManager\EventManager'))
+            if($container->has('Laminas\EventManager\EventManager'))
             {
-                $eventManager = $container->get('Zend\EventManager\EventManager');
+                $eventManager = $container->get('Laminas\EventManager\EventManager');
             }
             else
             {

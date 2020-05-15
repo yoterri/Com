@@ -6,11 +6,11 @@ use Com\Interfaces\LazyLoadInterface;
 use Com\Interfaces\ContainerAwareInterface;
 use Com\Traits\ContainerAwareTrait;
 
-use Zend\Form\Form;
-use Zend\EventManager\Event;
-use Zend\EventManager\EventManagerAwareInterface;
+use Laminas\Form\Form;
+use Laminas\EventManager\Event;
+use Laminas\EventManager\EventManagerAwareInterface;
 use Interop\Container\ContainerInterface;
-use Zend\EventManager\EventManagerAwareTrait;
+use Laminas\EventManager\EventManagerAwareTrait;
 
 
 abstract class AbstractForm extends Form implements LazyLoadInterface, EventManagerAwareInterface, ContainerAwareInterface

@@ -3,8 +3,7 @@
 namespace Com\Crypt;
 
 use Com;
-Use Zend;
-use \Zend\ServiceManager\ServiceLocatorInterface;
+use \Laminas\ServiceManager\ServiceLocatorInterface;
 use Com\Crypt\Password;
 
 class Token

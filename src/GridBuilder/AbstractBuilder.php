@@ -8,11 +8,11 @@ use Com\Interfaces\ContainerAwareInterface;
 use Com\Traits\ContainerAwareTrait;
 
 use Interop\Container\ContainerInterface;
-use Zend\EventManager\EventManager;
-use Zend\EventManager\EventManagerAwareTrait;
-use Zend\EventManager\EventManagerAwareInterface;
-use Zend\Escaper\Escaper;
-use Zend\Db\Sql\Select;
+use Laminas\EventManager\EventManager;
+use Laminas\EventManager\EventManagerAwareTrait;
+use Laminas\EventManager\EventManagerAwareInterface;
+use Laminas\Escaper\Escaper;
+use Laminas\Db\Sql\Select;
 
 abstract class AbstractBuilder implements ContainerAwareInterface, EventManagerAwareInterface, LazyLoadInterface
 {
@@ -24,12 +24,12 @@ abstract class AbstractBuilder implements ContainerAwareInterface, EventManagerA
     protected $tinyGrid = false;
 
     /**
-     * @var Zend\Router\RouteMatch
+     * @var Laminas\Router\RouteMatch
      */
     protected $routeMatch;
 
     /**
-     * @var Zend\Router\RouteStackInterface
+     * @var Laminas\Router\RouteStackInterface
      */
     protected $router = null;
 
@@ -131,7 +131,7 @@ abstract class AbstractBuilder implements ContainerAwareInterface, EventManagerA
 
 
     /**
-     * @return Zend\Router\RouteMatch
+     * @return Laminas\Router\RouteMatch
      */
     protected function _getRouteMatch()
     {
@@ -154,7 +154,7 @@ abstract class AbstractBuilder implements ContainerAwareInterface, EventManagerA
 
     
     /**
-     * @return Zend\Router\RouteStackInterface
+     * @return Laminas\Router\RouteStackInterface
      */
     protected function _getRouter()
     {

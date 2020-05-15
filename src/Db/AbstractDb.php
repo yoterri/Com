@@ -13,19 +13,19 @@ namespace Com\Db;
  * post.delete
  */
 
-use Zend;
-use Zend\Db\TableGateway\TableGateway;
-use Zend\Db\Adapter\Adapter;
-use Zend\EventManager\Event;
-use Zend\EventManager\EventManagerAwareInterface;
-use Zend\Db\Sql\Where;
-use Zend\Paginator\Adapter\DbSelect;
-use Zend\Db\Sql\Select;
-use Zend\Paginator\Paginator;
-use Zend\EventManager\EventManagerAwareTrait;
-use Zend\Db\Adapter\AdapterAwareTrait;
-use Zend\Db\Adapter\AdapterAwareInterface;
-use Zend\Db\Sql\AbstractPreparableSql;
+use Laminas;
+use Laminas\Db\TableGateway\TableGateway;
+use Laminas\Db\Adapter\Adapter;
+use Laminas\EventManager\Event;
+use Laminas\EventManager\EventManagerAwareInterface;
+use Laminas\Db\Sql\Where;
+use Laminas\Paginator\Adapter\DbSelect;
+use Laminas\Db\Sql\Select;
+use Laminas\Paginator\Paginator;
+use Laminas\EventManager\EventManagerAwareTrait;
+use Laminas\Db\Adapter\AdapterAwareTrait;
+use Laminas\Db\Adapter\AdapterAwareInterface;
+use Laminas\Db\Sql\AbstractPreparableSql;
 
 use Com\Entity\Record;
 use Com\Entity\AbstractEntity;
@@ -68,13 +68,13 @@ class AbstractDb extends TableGateway implements AdapterAwareInterface, Abstract
 
     /**
      *
-     * @var Zend\Stdlib\Hydrator\HydratorInterface
+     * @var Laminas\Stdlib\Hydrator\HydratorInterface
      */
     protected $hydrator;
 
     /**
      *
-     * @var Zend\Db\ResultSet\ResultSet
+     * @var Laminas\Db\ResultSet\ResultSet
      */
     protected $resultSet = null;
 
@@ -93,14 +93,14 @@ class AbstractDb extends TableGateway implements AdapterAwareInterface, Abstract
     /**
      *
      * @param string $features
-     * @param Zend\Db\ResultSet\ResultSetInterface $resultSetPrototype
+     * @param Laminas\Db\ResultSet\ResultSetInterface $resultSetPrototype
      */
-    function __construct($features = null, Zend\Db\ResultSet\ResultSetInterface $resultSetPrototype = null)
+    function __construct($features = null, Laminas\Db\ResultSet\ResultSetInterface $resultSetPrototype = null)
     {
         // process features
         if($features !== null)
         {
-            if($features instanceof Zend\Db\TableGateway\Feature\AbstractFeature)
+            if($features instanceof Laminas\Db\TableGateway\Feature\AbstractFeature)
             {
                 $features = array(
                     $features 
@@ -109,9 +109,9 @@ class AbstractDb extends TableGateway implements AdapterAwareInterface, Abstract
             
             if(is_array($features))
             {
-                $this->featureSet = new Zend\Db\TableGateway\Feature\FeatureSet($features);
+                $this->featureSet = new Laminas\Db\TableGateway\Feature\FeatureSet($features);
             }
-            elseif($features instanceof Zend\Db\TableGateway\Feature\FeatureSet)
+            elseif($features instanceof Laminas\Db\TableGateway\Feature\FeatureSet)
             {
                 $this->featureSet = $features;
             }
@@ -122,11 +122,11 @@ class AbstractDb extends TableGateway implements AdapterAwareInterface, Abstract
         }
         else
         {
-            $this->featureSet = new Zend\Db\TableGateway\Feature\FeatureSet();
+            $this->featureSet = new Laminas\Db\TableGateway\Feature\FeatureSet();
         }
         
         // result prototype
-        $this->resultSetPrototype = ($resultSetPrototype) ?  : new Zend\Db\ResultSet\ResultSet();
+        $this->resultSetPrototype = ($resultSetPrototype) ?  : new Laminas\Db\ResultSet\ResultSet();
     }
 
 
@@ -215,8 +215,8 @@ class AbstractDb extends TableGateway implements AdapterAwareInterface, Abstract
     /**
      * @param int $pageNumber
      * @param int $itemsPerPage
-     * @param string|Zend\Db\Adapter\Adapter $adapter
-     * @return Zend\Paginator\Paginator
+     * @param string|Laminas\Db\Adapter\Adapter $adapter
+     * @return Laminas\Paginator\Paginator
      */
     function getPaginator($pageNumber = null, $itemsPerPage = null, $adapter = null)
     {
@@ -268,7 +268,7 @@ class AbstractDb extends TableGateway implements AdapterAwareInterface, Abstract
 
     /**
      *
-     * @return \Zend\Db\Adapter\Adapter
+     * @return \Laminas\Db\Adapter\Adapter
      */
     function getDbAdapter()
     {
@@ -334,7 +334,7 @@ class AbstractDb extends TableGateway implements AdapterAwareInterface, Abstract
 
     /**
      *
-     * @see Zend\Db\TableGateway\AbstractTableGateway::initialize()
+     * @see Laminas\Db\TableGateway\AbstractTableGateway::initialize()
      */
     function initialize()
     {
@@ -350,7 +350,7 @@ class AbstractDb extends TableGateway implements AdapterAwareInterface, Abstract
         $prefix = $event->getParam('prefix');
         if(! empty($this->schemaName))
         {
-            $this->table = new Zend\Db\Sql\TableIdentifier("{$prefix}{$this->tableName}", $this->schemaName);
+            $this->table = new Laminas\Db\Sql\TableIdentifier("{$prefix}{$this->tableName}", $this->schemaName);
         }
         else
         {
@@ -358,9 +358,9 @@ class AbstractDb extends TableGateway implements AdapterAwareInterface, Abstract
         }
         
         // Sql object (factory for select, insert, update, delete)
-        $this->sql = new Zend\Db\Sql\Sql($this->getDbAdapter(), $this->table);
+        $this->sql = new Laminas\Db\Sql\Sql($this->getDbAdapter(), $this->table);
         
-        $this->hydrator = new Zend\Hydrator\ObjectProperty();
+        $this->hydrator = new Laminas\Hydrator\ObjectProperty();
         
         // check sql object bound to same table
         if($this->sql->getTable() != $this->table)
@@ -375,7 +375,7 @@ class AbstractDb extends TableGateway implements AdapterAwareInterface, Abstract
     /**
      *
      * @param array $data
-     * @return Zend\Db\Adapter\Driver\ResultInterface
+     * @return Laminas\Db\Adapter\Driver\ResultInterface
      */
     function doInsert(array $data)
     {
@@ -425,7 +425,7 @@ class AbstractDb extends TableGateway implements AdapterAwareInterface, Abstract
      *
      * @param array $data
      * @param string|array|closure $where
-     * @return Zend\Db\Adapter\Driver\ResultInterface
+     * @return Laminas\Db\Adapter\Driver\ResultInterface
      */
     function doUpdate(array $data, $where)
     {
@@ -477,7 +477,7 @@ class AbstractDb extends TableGateway implements AdapterAwareInterface, Abstract
     /**
      *
      * @param string|array|closure $where
-     * @return \Zend\Db\Adapter\Driver\ResultInterface
+     * @return \Laminas\Db\Adapter\Driver\ResultInterface
      */
     function doDelete($where)
     {
@@ -534,7 +534,7 @@ class AbstractDb extends TableGateway implements AdapterAwareInterface, Abstract
      * @param int $offset
      * @param Com\Entity\AbstractEntity | string $entity
      * 
-     * @return Zend\Db\ResultSet\AbstractResultSet
+     * @return Laminas\Db\ResultSet\AbstractResultSet
      * 
      * @throws \RuntimeException
      */
@@ -554,7 +554,7 @@ class AbstractDb extends TableGateway implements AdapterAwareInterface, Abstract
      * @param string $colName
      * @param Com\Entity\AbstractEntity | string $entity
      * 
-     * @return Zend\Db\ResultSet\AbstractResultSet
+     * @return Laminas\Db\ResultSet\AbstractResultSet
      */
     function findRecord($primaryKey = null, $colName = null, $entity = null)
     {
@@ -587,13 +587,13 @@ class AbstractDb extends TableGateway implements AdapterAwareInterface, Abstract
     /**
      * Returns a ResultSet of \Com\Entity\Record
      *
-     * @param Zend\Db\Sql\Select
+     * @param Laminas\Db\Sql\Select
      * @param Where|\Closure|string|array|Predicate\PredicateInterface $where
      * @param array $cols
      * @param string $order
      * @param int $count
      * @param int $offset
-     * @return Zend\Db\Sql\Select
+     * @return Laminas\Db\Sql\Select
      */
     protected function _apply($select, $where = null, $cols = null, $order = null, $count = null, $offset = null)
     {
@@ -626,11 +626,11 @@ class AbstractDb extends TableGateway implements AdapterAwareInterface, Abstract
      * @param string $order
      * @param Com\Entity\AbstractEntity | string $entity
      * 
-     * @return Zend\Db\ResultSet\AbstractResultSet
+     * @return Laminas\Db\ResultSet\AbstractResultSet
      */
     function findAll($order = null, $entity = null)
     {
-        #new Zend\Db\ResultSet\ResultSet();
+        #new Laminas\Db\ResultSet\ResultSet();
         $cols = array('*');
         
         return $this->findBy(null, $cols, $order, null, null, $entity);
@@ -735,7 +735,7 @@ class AbstractDb extends TableGateway implements AdapterAwareInterface, Abstract
         }
 
         $cols = array();
-        $cols['count'] = new Zend\Db\Sql\Predicate\Expression('COUNT(*)');
+        $cols['count'] = new Laminas\Db\Sql\Predicate\Expression('COUNT(*)');
         $select->columns($cols);
 
         $entity = $this->_build('Com\Entity\Record');
@@ -753,16 +753,16 @@ class AbstractDb extends TableGateway implements AdapterAwareInterface, Abstract
             $tableName = $driver->quoteIdentifier($tableName);
         }
 
-        $this->getAdapter()->query("TRUNCATE TABLE {$tableName};", Zend\Db\Adapter\Adapter::QUERY_MODE_EXECUTE);
+        $this->getAdapter()->query("TRUNCATE TABLE {$tableName};", Laminas\Db\Adapter\Adapter::QUERY_MODE_EXECUTE);
     }
 
 
     /**
      *
-     * @param \Zend\Db\Sql\SqlInterface $sql Consulta sql a mostrar
+     * @param \Laminas\Db\Sql\SqlInterface $sql Consulta sql a mostrar
      * @param string $exit Indica si se debe detener la ejecucion del código
      */
-    function debugSql(\Zend\Db\Sql\SqlInterface $sql, $exit = true)
+    function debugSql(\Laminas\Db\Sql\SqlInterface $sql, $exit = true)
     {
         $str = $this->getSqlAsString($sql);
         
@@ -778,10 +778,10 @@ class AbstractDb extends TableGateway implements AdapterAwareInterface, Abstract
 
 
     /**
-     * @param Zend\Db\Sql\AbstractPreparableSql $sql $sql
+     * @param Laminas\Db\Sql\AbstractPreparableSql $sql $sql
      * @return string
      */
-    function getSqlAsString(Zend\Db\Sql\AbstractPreparableSql $sql)
+    function getSqlAsString(Laminas\Db\Sql\AbstractPreparableSql $sql)
     {
         $str = $sql->getSqlString($this->getDbAdapter()->getPlatform());
         
@@ -791,12 +791,12 @@ class AbstractDb extends TableGateway implements AdapterAwareInterface, Abstract
 
     /**
      *
-     * @param \Zend\Db\Sql\Select $select
+     * @param \Laminas\Db\Sql\Select $select
      * @param \Com\Entity\AbstractEntity | string $entity
      * 
-     * @return Zend\Db\ResultSet\AbstractResultSet | mixed
+     * @return Laminas\Db\ResultSet\AbstractResultSet | mixed
      */
-    function executeCustomSelect(Zend\Db\Sql\Select $select, $entity = null)
+    function executeCustomSelect(Laminas\Db\Sql\Select $select, $entity = null)
     {
         // prepare and execute
 
