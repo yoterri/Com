@@ -144,11 +144,11 @@ class DsFormatter implements LazyLoadInterface
                     }
                 }
 
-                if ($this->excludeFields)
+                if($this->excludeFields)
                 {
                     foreach($this->excludeFields as $field)
                     {
-                        if (isset($row[$field]))
+                        if(array_key_exists($field, $row))
                         {
                             unset($row[$field]);
                             continue;
