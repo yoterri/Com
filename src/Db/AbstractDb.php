@@ -360,7 +360,7 @@ class AbstractDb extends TableGateway implements AdapterAwareInterface, Abstract
         // Sql object (factory for select, insert, update, delete)
         $this->sql = new Laminas\Db\Sql\Sql($this->getDbAdapter(), $this->table);
         
-        $this->hydrator = new Laminas\Hydrator\ObjectProperty();
+        $this->hydrator = new Laminas\Hydrator\ObjectPropertyHydrator();
         
         // check sql object bound to same table
         if($this->sql->getTable() != $this->table)
