@@ -28,6 +28,53 @@ class Communicator
      */
     protected $errors = array();
 
+    /**
+     * @var boolean
+     */
+    protected $hideException = true;
+
+    /**
+     * @var string
+     */
+    protected $exceptionMessage = 'There was an unexpected error. An email message was sent to support team.';
+
+
+    /**
+     * @param string $exceptionMessage
+     */
+    function setExceptionMessage($exceptionMessage)
+    {
+        $this->exceptionMessage = $exceptionMessage;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    function getExceptionMessage()
+    {
+        return $this->exceptionMessage;
+    }
+
+
+    /**
+     * @param bool $value
+     */
+    function setHideException($value)
+    {
+        $this->hideException = (bool)$value;
+        return $this;
+    }
+
+
+    /**
+     * @return bool
+     */
+    function getHideException()
+    {
+        return $this->hideException;
+    }
+
 
     /**
      *
@@ -82,7 +129,12 @@ class Communicator
      */
     function setException(\Exception $e)
     {
-       $this->addError($e->getMessage());
+        if ($this->hideException) {
+            $this->addError($this->exceptionMessage);
+        } else {
+            $this->addError($e->getMessage());
+        }
+
        return $this;
     }
 
