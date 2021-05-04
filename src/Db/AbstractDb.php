@@ -758,6 +758,34 @@ class AbstractDb extends TableGateway implements AdapterAwareInterface, Abstract
 
 
     /**
+     * @param  string $columnName
+     * @return Com\Entity\Record | false
+     */
+    function columnExist($columnName)
+    {
+        $tableName = $this->getTable();
+        if(false === strpos($this->getTable(), '.'))
+        {
+            $driver = $this->getAdapter()->getPlatform();
+            $tableName = $driver->quoteIdentifier($tableName);
+        }
+
+        $result = $this->getAdapter()->query("SHOW COLUMNS FROM {$tableName} LIKE '$columnName';")->execute();
+        if ($result->count()) {
+            $sm     = $this->getContainer();
+            $row    = $result->current();
+
+            $result = $sm->build('Com\Entity\Record');
+            $result->exchange($row);
+        } else {
+            $result = false;
+        }
+
+        return $result;
+    }
+
+
+    /**
      *
      * @param \Laminas\Db\Sql\SqlInterface $sql Consulta sql a mostrar
      * @param string $exit Indica si se debe detener la ejecucion del código
