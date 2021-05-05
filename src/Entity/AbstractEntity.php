@@ -399,4 +399,161 @@ abstract class AbstractEntity extends AbstractObject implements  AdapterAwareInt
     {
         return new Where();
     }
+
+
+
+
+
+    /**
+     * @param  string|AbstractDb $dbRel   
+     * @param  array|Where       $cond  - ['id_from_remote_table1' => 'id_local', 'id_from_remote_table2' => 'enabled'];
+     * @return Laminas\Db\ResultSet\AbstractResultSet
+     */
+    function findRel($dbRel, $cond)
+    {
+        if (!$dbRel instanceof AbstractDb) {
+            if (!is_string($dbRel)) {
+                throw new \Exception('Invalid variable type $dbRel provided');
+            }
+
+            $dbRel = $this->getContainer()->get($dbRel);
+        }
+
+        if (is_array($cond)) {
+            if (!count($cond)) {
+                throw new \Exception('No condition provided');
+            }
+
+            $where = new Where();
+            foreach ($cond as $remote => $localVal) {
+                if (is_string($localVal) && in_array($localVal, $this->properties)) {
+                    $localVal = $this->$localVal;
+                }
+
+                if (is_null($localVal)) {
+                    $where->isNull($remote);
+                } elseif (is_array($localVal)) {
+                    $where->in($remote, $localVal);
+                } else {
+                    $where->equalTo($remote, $localVal);
+                }
+            }
+
+            $cond = $where;
+        }
+
+        if (!$cond instanceof Where) {
+            throw new \Exception('Invalid variable type $cond provided');
+        }
+
+        return $dbRel->findBy($cond);
+    }
+
+
+    /**
+     * @param  string|AbstractDb $dbRel   
+     * @param  array|Where       $cond  - ['id_from_remote_table1' => 'id_local', 'id_from_remote_table2' => 'enabled'];
+     * @return Laminas\Db\ResultSet\AbstractResultSet
+     */
+    function countRel($dbRel, $cond)
+    {
+        if (!$dbRel instanceof AbstractDb) {
+            if (!is_string($dbRel)) {
+                throw new \Exception('Invalid variable type $dbRel provided');
+            }
+
+            $dbRel = $this->getContainer()->get($dbRel);
+        }
+
+        if (is_array($cond)) {
+            if (!count($cond)) {
+                throw new \Exception('No condition provided');
+            }
+
+            $where = new Where();
+            foreach ($cond as $remote => $localVal) {
+                if (is_string($localVal) && in_array($localVal, $this->properties)) {
+                    $localVal = $this->$localVal;
+                }
+
+                if (is_null($localVal)) {
+                    $where->isNull($remote);
+                } elseif (is_array($localVal)) {
+                    $where->in($remote, $localVal);
+                } else {
+                    $where->equalTo($remote, $localVal);
+                }
+            }
+
+            $cond = $where;
+        }
+
+        if (!$cond instanceof Where) {
+            throw new \Exception('Invalid variable type $cond provided');
+        }
+
+        return $dbRel->count($cond);
+    }
+
+    protected function _findRel($methodName, $args, $countArguments)
+    {
+        if (0 == $countArguments) {
+            $cond = [];
+        } else {
+            $cond = $args[0];
+        }
+
+        if ($countArguments > 1) {
+            $namespace = end($args);
+        } else {
+            $namespace = 'App\Db';
+        }
+
+        $className = substr($methodName, 7);
+        $className = "{$namespace}\\{$className}";
+
+        return $this->findRel($className, $cond);
+    }
+
+
+    protected function _countRel($methodName, $args, $countArguments)
+    {
+        if (0 == $countArguments) {
+            $cond = [];
+        } else {
+            $cond = $args[0];
+        }
+
+        if ($countArguments > 1) {
+            $namespace = end($args);
+        } else {
+            $namespace = 'App\Db';
+        }
+
+        $className = substr($methodName, 8);
+        $className = "{$namespace}\\{$className}";
+
+        return $this->countRel($className, $cond);
+    }
+
+
+    /**
+     * @param  [type] $methodName [description]
+     * @param  [type] $args       [description]
+     * @return mixed
+     */
+    function __call($methodName, $args)
+    {
+        $methodNameLower = strtolower($methodName);
+        $countArguments  = count($args);
+
+        if ('findrel' == substr($methodNameLower, 0, 7)) {
+            return $this->_findRel($methodName, $args, $countArguments);
+        } elseif ('countrel' == substr($methodNameLower, 0, 8)) {
+            return $this->_countRel($methodName, $args, $countArguments);
+        }
+
+        $className = get_class($this);
+        throw new \Exception("Call to undefined method {$className}::{$methodName}");
+    }
 }
