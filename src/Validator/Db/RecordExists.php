@@ -361,6 +361,11 @@ class RecordExists extends AbstractValidator implements AdapterAwareInterface
             $count =  $row->count;
         }
 
-        return ($count > 0);
+        $valid = ($count > 0);
+        if (!$valid) {
+            $this->error(self::ERROR_NO_RECORD_FOUND);
+        }
+
+        return $valid;
     }
 }
