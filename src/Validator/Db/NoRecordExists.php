@@ -11,6 +11,7 @@ use Laminas\Db\Sql\Literal;
 use Laminas\Validator\AbstractValidator;
 use Laminas\Db\Adapter\AdapterInterface;
 use Laminas\Db\Adapter\Adapter as DbAdapter;
+use Laminas\Log\LoggerInterface;
 /**
  * Confirms a record DOES NOT exists in a table.
  */
@@ -113,6 +114,13 @@ class NoRecordExists extends AbstractValidator implements AdapterAwareInterface
 
 
 
+    function setLogger(LoggerInterface $logger)
+    {
+        $this->logger = $logger;
+        return $this;
+    }
+
+
 
     /**
      * Returns the set field
@@ -182,18 +190,18 @@ class NoRecordExists extends AbstractValidator implements AdapterAwareInterface
 
 
     /**
-     * @param Where $where
+     * @param Where|calleable $where
      * @return $this Provides a fluent interface
      */
-    function setWhere(Where $where)
+    function setWhere($where)
     {
-        $this->where = $where;
+        $this->where = $where;    
         return $this;
     }
 
 
     /**
-     * @return Where
+     * @return Where|calleable
      */
     function getWhere()
     {
@@ -280,6 +288,12 @@ class NoRecordExists extends AbstractValidator implements AdapterAwareInterface
                 $condType = 'and';
             }
 
+            //
+            if (is_callable($custWhere)) {
+                $condition = new Where();
+                $custWhere = $custWhere($condition, $value);
+            }
+
             $where = new Where();
             $where->equalTo($field, $value);
             if ('and' == $condType) {
@@ -295,6 +309,11 @@ class NoRecordExists extends AbstractValidator implements AdapterAwareInterface
         $adapter = $this->getAdapter();
         $sql = new Sql($adapter);
         $query = $sql->buildSqlString($select);
+
+        if ($this->logger) {
+            $this->logger->debug(__CLASS__, $query);
+        }
+        
         $result = $adapter->query($query)->execute();
 
         $row = $result->current();

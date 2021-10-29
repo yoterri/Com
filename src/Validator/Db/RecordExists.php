@@ -11,12 +11,16 @@ use Laminas\Db\Sql\Literal;
 use Laminas\Validator\AbstractValidator;
 use Laminas\Db\Adapter\AdapterInterface;
 use Laminas\Db\Adapter\Adapter as DbAdapter;
+use Laminas\Log\LoggerInterface;
 /**
  * Confirms a record exists in a table.
  */
 class RecordExists extends AbstractValidator implements AdapterAwareInterface
 {
     use AdapterAwareTrait;
+
+
+    protected $logger;
 
     /**
      * Error constants
@@ -65,9 +69,6 @@ class RecordExists extends AbstractValidator implements AdapterAwareInterface
 
     /**
      * Provides basic configuration for use with Laminas\Validator\Db Validators
-     * Setting $exclude allows a single record to be excluded from matching.
-     * Exclude can either be a String containing a where clause, or an array with `field` and `value` keys
-     * to define the where clause added to the sql.
      * A database adapter may optionally be supplied to avoid using the registered default adapter.
      *
      * The following option keys are supported:
@@ -115,6 +116,12 @@ class RecordExists extends AbstractValidator implements AdapterAwareInterface
         }
     }
 
+
+    function setLogger(LoggerInterface $logger)
+    {
+        $this->logger = $logger;
+        return $this;
+    }
 
 
 
@@ -186,10 +193,10 @@ class RecordExists extends AbstractValidator implements AdapterAwareInterface
 
 
     /**
-     * @param Where $where
+     * @param Where|calleable $where
      * @return $this Provides a fluent interface
      */
-    function setWhere(Where $where)
+    function setWhere($where)
     {
         $this->where = $where;
         return $this;
@@ -197,7 +204,7 @@ class RecordExists extends AbstractValidator implements AdapterAwareInterface
 
 
     /**
-     * @return Where
+     * @return Where|calleable
      */
     function getWhere()
     {
@@ -336,6 +343,11 @@ class RecordExists extends AbstractValidator implements AdapterAwareInterface
                 $condType = 'and';
             }
 
+            if (is_callable($custWhere)) {
+                $condition = new Where();
+                $custWhere = $custWhere($condition, $value);
+            }
+
             $where = new Where();
             $where->equalTo($field, $value);
             if ('and' == $condType) {
@@ -351,6 +363,11 @@ class RecordExists extends AbstractValidator implements AdapterAwareInterface
         $adapter = $this->getAdapter();
         $sql = new Sql($adapter);
         $query = $sql->buildSqlString($select);
+
+        if ($this->logger) {
+            $this->logger->debug(__CLASS__, $query);
+        }
+
         $result = $adapter->query($query)->execute();
 
         $row = $result->current();
