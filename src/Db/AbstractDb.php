@@ -151,13 +151,14 @@ class AbstractDb extends TableGateway implements AdapterAwareInterface, Abstract
      * @param array  $relationsConfig - the relation name you want to use
      * @param Where|\Closure|string|array|Predicate\PredicateInterface $where
      * @param array $cols
+     * @param string|array $group
      * @param string $order
      * @param int $count
      * @param int $offset
      * 
      * @return Com\Model\QuerySelect
      */
-    function buildQuerySelect($mainAlias, array $relationsConfig = [], Where $where = null, $cols = null, $order = null, $count = null, $offset = null)
+    function buildQuerySelect($mainAlias, array $relationsConfig = [], Where $where = null, $cols = null, $group = null, $order = null, $count = null, $offset = null)
     {
         $sm = $this->getContainer();
         $select = new Select();
@@ -186,7 +187,7 @@ class AbstractDb extends TableGateway implements AdapterAwareInterface, Abstract
             $db = $sm->get($config['db']);
 
             #
-            if (is_null($cols)) {
+            if (!$cols) {
                 $tmpCols = $db->getEntity()->getEntityColumns();
                 foreach ($tmpCols as $key => $colName) {
                     $localCols["{$config['alias']}_{$colName}"] = new Expression("{$config['alias']}.{$colName}");
@@ -198,17 +199,22 @@ class AbstractDb extends TableGateway implements AdapterAwareInterface, Abstract
             $select->join([$config['alias'] => $db->getTable()], "({$mainAlias}.{$config['local']} = {$config['alias']}.{$config['foreign']})", [], $join);
         }
 
-        if (is_null($cols)) {
+        if (!$cols) {
+            $cols = $this->getEntity()->getEntityColumns();
             if ($localCols) {
-                $localCols = $this->getEntity()->getEntityColumns() + $localCols;
-                $select->columns($localCols);
+                $cols += $localCols;
             }
+            $select->columns($cols);
         } else {
             $select->columns($cols);
         }
 
         if ($where) {
             $select->where($where);
+        }
+
+        if ($group) {
+            $select->where($group);
         }
 
         if ($count) {
@@ -227,7 +233,7 @@ class AbstractDb extends TableGateway implements AdapterAwareInterface, Abstract
             $select->order($order);
         }
 
-        return $sm->get('Com\Model\QuerySelect')->setSelect($select);
+        return $sm->build('Com\Model\QuerySelect')->setSelect($select);
     }
 
 

@@ -563,6 +563,7 @@ abstract class AbstractEntity extends AbstractObject implements  AdapterAwareInt
      * @param string $relationName
      * @param Where|\Closure|string|array|Predicate\PredicateInterface $where
      * @param array $cols
+     * @param string|array $group
      * @param string $order
      * @param int $count
      * @param int $offset
@@ -572,7 +573,7 @@ abstract class AbstractEntity extends AbstractObject implements  AdapterAwareInt
      * 
      * @throws \RuntimeException
      */
-    function findRelation($relationName, Where $where = null, $cols = null, $order = null, $count = null, $offset = null, $entity = null)
+    function findRelation($relationName, Where $where = null, $cols = null, $group = null, $order = null, $count = null, $offset = null, $entity = null)
     {
         $localDb = $this->getDbClass();
         $config = $localDb->getRelationsConfig();
@@ -591,8 +592,15 @@ abstract class AbstractEntity extends AbstractObject implements  AdapterAwareInt
         $relColumnName = $config['foreign'];
         $where->equalTo($relColumnName, $this->$localColumnName);
 
+        #
         $relDb = $this->getContainer()->get($config['db']);
-        $rowset = $relDb->findBy($where, $cols, $order, $count, $offset, $entity);
+        if (!$entity) {
+            $entity = $relDb->getEntity();
+        }
+
+        $querySelect = $relDb->buildQuerySelect('x', [], $where, $cols, $group, $order, $count, $offset);
+        $rowset = $querySelect->getResult($entity);
+
         if ('one' == $config['type']) {
             return $rowset->current();
         } else {
