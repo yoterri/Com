@@ -54,6 +54,19 @@ class AbstractDb extends TableGateway implements AdapterAwareInterface, Abstract
     protected $schemaName = '';
 
     /**
+     * @var array
+     * 'name_here' => [
+     *     'alias' => 'comp',
+     *     'type' => 'one',
+     *     'db' => 'App\Db\TableName',
+     *     'local' => 'id_local',
+     *     'foreign' => 'id_other_table',
+     *     'join' => 'inner',
+     *  ],
+     */
+    protected $relationsConfig = [];
+
+    /**
      * The database adpater used to connect to the database
      * @var string
      */
@@ -127,6 +140,135 @@ class AbstractDb extends TableGateway implements AdapterAwareInterface, Abstract
         
         // result prototype
         $this->resultSetPrototype = ($resultSetPrototype) ?  : new Laminas\Db\ResultSet\ResultSet();
+    }
+
+
+    /**
+     * Returns a Com\Model\QuerySelect object
+     *
+     * @param string $mainAlias - the alias used for the main table
+     * @param array  $relationsConfig - the relation name you want to use
+     * @param Where|\Closure|string|array|Predicate\PredicateInterface $where
+     * @param array $cols
+     * @param string $order
+     * @param int $count
+     * @param int $offset
+     * 
+     * @return Com\Model\QuerySelect
+     */
+    function buildQuerySelect($mainAlias, array $relationsConfig = [], Where $where = null, $cols = null, $order = null, $count = null, $offset = null)
+    {
+        $sm = $this->getContainer();
+        $select = new Select();
+        $select->from([$mainAlias => $this->getTable()]);
+        $localCols = [];
+
+        foreach ($relationsConfig as $key => $item) {
+            if (is_array($item)) {
+                if (isset($this->relationsConfig[$key])) {
+                    $config = array_merge($this->relationsConfig[$key], $item);
+                } else {
+                    $config = $item;
+                }
+
+                $this->checkRelationConfig($key, $config);
+            } else {
+                if (!isset($this->relationsConfig[$item])) {
+                    throw new \Exception("Relation with name '{$item}' was not found");
+                }
+
+                $this->checkRelationConfig($item, $this->relationsConfig[$item]);
+                $config = $this->relationsConfig[$item];
+            }
+
+            #
+            $db = $sm->get($config['db']);
+
+            #
+            if (is_null($cols)) {
+                $tmpCols = $db->getEntity()->getEntityColumns();
+                foreach ($tmpCols as $key => $colName) {
+                    $localCols["{$config['alias']}_{$colName}"] = new Expression("{$config['alias']}.{$colName}");
+                }
+            }
+
+            #
+            $join = isset($config['join']) ? $config['join'] : 'inner';
+            $select->join([$config['alias'] => $db->getTable()], "({$mainAlias}.{$config['local']} = {$config['alias']}.{$config['foreign']})", [], $join);
+        }
+
+        if (is_null($cols)) {
+            if ($localCols) {
+                $localCols = $this->getEntity()->getEntityColumns() + $localCols;
+                $select->columns($localCols);
+            }
+        } else {
+            $select->columns($cols);
+        }
+
+        if ($where) {
+            $select->where($where);
+        }
+
+        if ($count) {
+            $select->limit($count);
+        }
+
+        if ($offset) {
+            $select->offset($offset);
+        }
+
+        if ($order) {
+            if (!is_array()) {
+                $order = [$order];
+            }
+
+            $select->order($order);
+        }
+
+        return $sm->get('Com\Model\QuerySelect')->setSelect($select);
+    }
+
+
+    /**
+     * @param string config name
+     * @param array  configuration to check
+     */
+    function checkRelationConfig($name, array $config)
+    {
+        if (!isset($config['alias'])) {
+            throw new \Exception("Relation with name '{$name}' has no 'alias' configuration");
+        }
+
+        if (!isset($config['type'])) {
+            throw new \Exception("Relation with name '{$name}' has no 'type' configuration");
+        }
+
+        if (!isset($config['db'])) {
+            throw new \Exception("Relation with name '{$name}' has no 'db' configuration");
+        }
+
+        if (!isset($config['local'])) {
+            throw new \Exception("Relation with name '{$name}' has no 'local' configuration");
+        }
+
+        if (!isset($config['foreign'])) {
+            throw new \Exception("Relation with name '{$name}' has no 'foreign' configuration");
+        }
+
+        $validTypes = ['one', 'many'];
+        if (!in_array($config['type'], $validTypes)) {
+            throw new \Exception("Relation with name '{$name}' has an invalid 'type'");
+        }
+    }
+
+
+    /**
+     * @return array
+     */
+    function getRelationsConfig()
+    {
+        return $this->relationsConfig;
     }
 
 

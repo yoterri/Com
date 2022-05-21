@@ -556,4 +556,79 @@ abstract class AbstractEntity extends AbstractObject implements  AdapterAwareInt
         $className = get_class($this);
         throw new \Exception("Call to undefined method {$className}::{$methodName}");
     }
+
+
+    /**
+     * Returns a ResultSet of Com\Entity\AbstractEntity
+     * @param string $relationName
+     * @param Where|\Closure|string|array|Predicate\PredicateInterface $where
+     * @param array $cols
+     * @param string $order
+     * @param int $count
+     * @param int $offset
+     * @param Com\Entity\AbstractEntity | string $entity
+     * 
+     * @return Laminas\Db\ResultSet\AbstractResultSet|Com\Entity\AbstractEntity
+     * 
+     * @throws \RuntimeException
+     */
+    function findRelation($relationName, Where $where = null, $cols = null, $order = null, $count = null, $offset = null, $entity = null)
+    {
+        $localDb = $this->getDbClass();
+        $config = $localDb->getRelationsConfig();
+        if (!isset($config[$relationName])) {
+            throw new \Exception("Relation with name '{$relationName}' was not found");
+        }
+
+        $config = $config[$relationName];
+        $localDb->checkRelationConfig($relationName, $config);
+
+        if (!$where) {
+            $where = new Where();
+        }
+
+        $localColumnName = $config['local'];
+        $relColumnName = $config['foreign'];
+        $where->equalTo($relColumnName, $this->$localColumnName);
+
+        $relDb = $this->getContainer()->get($config['db']);
+        $rowset = $relDb->findBy($where, $cols, $order, $count, $offset, $entity);
+        if ('one' == $config['type']) {
+            return $rowset->current();
+        } else {
+            return $rowset;
+        }
+    }
+
+
+    /**
+     * Returns a ResultSet of Com\Entity\AbstractEntity
+     * @param string $relationName
+     * @param Where|\Closure|string|array|Predicate\PredicateInterface $where
+     * @param string $group
+     * @return int
+     * @throws \RuntimeException
+     */
+    function countRelation($relationName, Where $where = null,  $group = null)
+    {
+        $localDb = $this->getDbClass();
+        $config = $localDb->getRelationsConfig();
+        if (!isset($config[$relationName])) {
+            throw new \Exception("Relation with name '{$relationName}' was not found");
+        }
+
+        $config = $config[$relationName];
+        $localDb->checkRelationConfig($relationName, $config);
+
+        if (!$where) {
+            $where = new Where();
+        }
+
+        $localColumnName = $config['local'];
+        $relColumnName = $config['foreign'];
+        $where->equalTo($relColumnName, $this->$localColumnName);
+
+        $relDb = $this->getContainer()->get($config['db']);
+        return $relDb->count($where, $group);
+    }
 }
