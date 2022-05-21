@@ -19,6 +19,7 @@ use Laminas\Db\Adapter\Adapter;
 use Laminas\EventManager\Event;
 use Laminas\EventManager\EventManagerAwareInterface;
 use Laminas\Db\Sql\Where;
+use Laminas\Db\Sql\Expression;
 use Laminas\Paginator\Adapter\DbSelect;
 use Laminas\Db\Sql\Select;
 use Laminas\Paginator\Paginator;
