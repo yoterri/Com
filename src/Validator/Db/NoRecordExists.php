@@ -57,6 +57,9 @@ class NoRecordExists extends AbstractValidator implements AdapterAwareInterface
      * @var string
      */
     protected $field = '';
+    
+    
+    protected $logger;
 
 
 
