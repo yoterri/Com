@@ -20,8 +20,6 @@ class RecordExists extends AbstractValidator implements AdapterAwareInterface
     use AdapterAwareTrait;
 
 
-    protected $logger;
-
     /**
      * Error constants
      */
