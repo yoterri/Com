@@ -217,4 +217,3 @@ class QuerySelect  implements ContainerAwareInterface, AdapterAwareInterface, Ev
         return $dbAdapter;
     }
 }
-}
