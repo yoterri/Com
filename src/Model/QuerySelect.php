@@ -7,24 +7,56 @@ use Laminas\Db\Sql\Select;
 use Laminas\Db\Sql\Where;
 use Laminas\Db\Sql\Expression;
 use Laminas\Db\Adapter\Adapter;
-use Laminas\Db\Adapter\AdapterAwareTrait;
 use Laminas\Db\ResultSet\ResultSet;
 use Laminas\Paginator\Adapter\DbSelect;
 use Laminas\Paginator\Paginator;
-use Laminas\Db\Adapter\AdapterAwareInterface;
 
-use Com\Entity\AbstractEntity;
 use Com\Interfaces\ContainerAwareInterface;
-use Com\Traits\ContainerAwareTrait;
+use Laminas\Db\Adapter\AdapterAwareInterface;
+use Laminas\EventManager\EventManagerAwareInterface;
+use Com\Interfaces\LazyLoadInterface;
 
-class QuerySelect extends AbstractModel
+use Laminas\Db\Adapter\AdapterAwareTrait;
+use Laminas\EventManager\EventManagerAwareTrait;
+use Com\Traits\ContainerAwareTrait;
+use Com\Entity\Record;
+use Com\Entity\AbstractEntity;
+use Laminas\Db\ResultSet\ResultSetInterface;
+
+
+class QuerySelect  implements ContainerAwareInterface, AdapterAwareInterface, EventManagerAwareInterface, LazyLoadInterface
 {
+
+    use AdapterAwareTrait, EventManagerAwareTrait, ContainerAwareTrait;
     
 
     /**
      * @var AbstractPreparableSql
      */
     protected $select;
+
+    /**
+     * ResultSet
+     */
+    protected $resultSet;
+
+
+
+    function setResultSetPrototype(ResultSetInterface $resultSet)
+    {
+        $this->resultSet = $resultSet;
+    }
+
+
+    function getResultSetPrototype()
+    {
+        if (!$this->resultSet) {
+            $resulset = new ResultSet();
+            $this->setResultSetPrototype($resulset);
+        }
+
+        return $this->resultSet;
+    }
 
 
 
@@ -61,7 +93,15 @@ class QuerySelect extends AbstractModel
     }
 
 
-    
+    /**
+     *
+     * @return \Laminas\Db\Adapter\Adapter
+     */
+    function getDbAdapter()
+    {
+        return $this->adapter;
+    }
+
 
 
     /**
@@ -79,15 +119,15 @@ class QuerySelect extends AbstractModel
         $result = $statement->execute();
         
         // build result set
-        $resultSet = new ResultSet();
+        $resultSet = $this->getResultSetPrototype();
         
         if (is_null($entity)) {
-            $entity = $this->getContainer()->get('Com\Entity\Record');
+            $entity = new Record();
         }
         
         $resultSet->setArrayObjectPrototype($entity);
         $resultSet->initialize($result);
-        $resultSet->buffer();
+        #$resultSet->buffer();
         
         return $resultSet;
     }
@@ -102,7 +142,7 @@ class QuerySelect extends AbstractModel
     function getPaginator($pageNumber = null, $itemsPerPage = null, $dbAdapter = null)
     {
         $dbAdapter = $this->_getAdapter($dbAdapter);
-        $paginatorAdapter = new DbSelect($this->getSelect(), $dbAdapter);
+        $paginatorAdapter = new DbSelect($this->getSelect(), $dbAdapter, $this->getResultSetPrototype());
         $paginator = new Paginator($paginatorAdapter);
 
         if (!is_null($pageNumber)) {
@@ -176,4 +216,5 @@ class QuerySelect extends AbstractModel
 
         return $dbAdapter;
     }
+}
 }
